@@ -4,7 +4,7 @@ using Microsoft.Azure.Search;
 
 namespace Forte.EpiServer.AzureSearch.Model
 {
-    public abstract class SearchDocument
+    public class SearchDocument
     {
         [Key]
         public string Id { get; set; }

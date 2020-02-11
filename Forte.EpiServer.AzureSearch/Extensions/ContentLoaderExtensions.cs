@@ -8,14 +8,21 @@ namespace Forte.EpiServer.AzureSearch.Extensions
     {
         public static IEnumerable<IContent> GetAllLanguageVersions(this IContentLoader contentLoader, ContentReference contentReference)
         {
-            var rootPage = contentLoader.Get<PageData>(contentReference);
-            
-            foreach (var cultureInfo in rootPage.ExistingLanguages)
+            var content = contentLoader.Get<IContent>(contentReference);
+
+            if (content is ILocalizable rootContent)
             {
-                var loaderOptions = new LoaderOptions {LanguageLoaderOption.Specific(cultureInfo)};
-                var pageInSpecificLanguage = contentLoader.Get<PageData>(contentReference, loaderOptions);
+                foreach (var cultureInfo in rootContent.ExistingLanguages)
+                {
+                    var loaderOptions = new LoaderOptions {LanguageLoaderOption.Specific(cultureInfo)};
+                    var contentInSpecificLanguage = contentLoader.Get<IContent>(contentReference.ToReferenceWithoutVersion(), loaderOptions);
                 
-                yield return pageInSpecificLanguage;
+                    yield return contentInSpecificLanguage;
+                }                
+            }
+            else
+            {
+                yield return content;
             }
         }
     }

@@ -36,9 +36,10 @@ namespace Forte.EpiServer.AzureSearch.Plugin
 
         private async Task<int> DeleteDocuments(AzureSearchQuery query)
         {
-            var documentsOlderThan = await _azureSearchService.SearchAsync<T>(query);
+            var defaultIndexName = _azureSearchService.GetDefaultIndexName<T>();
+            var documentsOlderThan = await _azureSearchService.SearchAsync<SearchDocument>(query, defaultIndexName);
 
-            await _azureSearchService.DeleteAsync(documentsOlderThan.Results.Select(r => r.Document).ToArray());
+            await _azureSearchService.DeleteAsync(documentsOlderThan.Results.Select(r => r.Document).ToArray(), defaultIndexName);
 
             return documentsOlderThan.Results.Count;
         }

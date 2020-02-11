@@ -93,6 +93,11 @@ namespace Forte.EpiServer.AzureSearch.Model
 
         private static string EnsureRelativeUrl(string url)
         {
+            if (string.IsNullOrEmpty(url))
+            {
+                return string.Empty;
+            }
+            
             var uri = new Uri(url, UriKind.RelativeOrAbsolute);
 
             return uri.IsAbsoluteUri ? uri.AbsolutePath : url;
