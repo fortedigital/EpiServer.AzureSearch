@@ -55,16 +55,16 @@ and will register event handlers so content is updated on publish events.
  
  ```c#
 [SearchProvider]
-    public class PageSearchProvider : ContentSearchProviderBase<ContentDocument>
+public class PageSearchProvider : ContentSearchProviderBase<ContentDocument>
+{
+    public PageSearchProvider(IAzureSearchService azureSearchService, IContentLanguageAccessor contentLanguageAccessor) : base(azureSearchService, contentLanguageAccessor)
     {
-        public PageSearchProvider(IAzureSearchService azureSearchService, IContentLanguageAccessor contentLanguageAccessor) : base(azureSearchService, contentLanguageAccessor)
-        {
-        }
-
-        public override string Area => "CMS/pages";
-
-        public override string Category => "Find pages";
     }
+
+    public override string Area => "CMS/pages";
+
+    public override string Category => "Find pages";
+}
 ```
 
 You can adjust `Area` and `Category` values to your needs - depending which search (pages/blocks/media) it should be attached to 
@@ -97,7 +97,7 @@ public class MyCustomDocumentBuilder : DefaultDocumentBuilder<MyCustomDocument>
     {
     }
 
-    public override EgmsContentDocument Build(IContent content)
+    public override MyCustomContentDocument Build(IContent content)
     {
         var document = base.Build(content);
 
@@ -109,7 +109,7 @@ public class MyCustomDocumentBuilder : DefaultDocumentBuilder<MyCustomDocument>
         return document;
     }
 
-    public override EgmsContentDocument Build(PageData pageData)
+    public override MyCustomDocument Build(PageData pageData)
     {
         return Build(pageData as IContent);
     }
