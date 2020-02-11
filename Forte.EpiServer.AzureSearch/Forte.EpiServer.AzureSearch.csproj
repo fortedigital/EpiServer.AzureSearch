@@ -262,6 +262,7 @@
     <Compile Include="Configuration\NullIndexSpecificationProvider.cs" />
     <Compile Include="Configuration\PrefixedIndexNamingConvention.cs" />
     <Compile Include="Events\SearchEventHandler.cs" />
+    <Compile Include="Extensions\AzureSearchServiceExtensions.cs" />
     <Compile Include="Extensions\ContentExtensions.cs" />
     <Compile Include="Extensions\ContentLoaderExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
