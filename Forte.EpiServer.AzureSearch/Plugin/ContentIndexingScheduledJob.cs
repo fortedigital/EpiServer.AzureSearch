@@ -34,11 +34,12 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             
             OnStatusChanged("Ensuring valid index definition");
             
-            var (updateOrRecreateResult, recreationReason) = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
-            var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult}\n";
-            if (updateOrRecreateResult == UpdateOrRecreateResult.Recreated)
+            var updateOrRecreateResult = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
+            
+            var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult.Type}\n";
+            if (updateOrRecreateResult.Type == UpdateOrRecreateResultEnum.Recreated)
             {
-                message += $"Recreation reason: {recreationReason}\n";
+                message += $"Recreation reason: {updateOrRecreateResult.RecreationReason}\n";
             }
             
             var indexContentRequest = new IndexContentRequest

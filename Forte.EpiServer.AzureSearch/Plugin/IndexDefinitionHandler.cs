@@ -16,22 +16,23 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             _azureSearchService = azureSearchService;
             _indexSpecificationProvider = indexSpecificationProvider;
         }
-
-        public async Task<(UpdateOrRecreateResult result, string recreationReason)> UpdateOrRecreateIndex()
+        
+        public async Task<UpdateOrRecreateResult> UpdateOrRecreateIndex()
         {
             try
             {
                 await _azureSearchService.CreateOrUpdateIndexAsync<T>(_indexSpecificationProvider.GetIndexSpecification());
 
-                return (UpdateOrRecreateResult.Ok, string.Empty);
+                return new UpdateOrRecreateResult(UpdateOrRecreateResultEnum.Ok, string.Empty);
             }
             catch (CloudException e) when (e.Response.StatusCode == HttpStatusCode.BadRequest)
             {
                 await _azureSearchService.DropIndexAsync<T>();
                 await _azureSearchService.CreateOrUpdateIndexAsync<T>(_indexSpecificationProvider.GetIndexSpecification());
 
-                return (UpdateOrRecreateResult.Recreated, e.Message);
+                return new UpdateOrRecreateResult(UpdateOrRecreateResultEnum.Recreated, e.Message);
             }
         }
     }
+
 }

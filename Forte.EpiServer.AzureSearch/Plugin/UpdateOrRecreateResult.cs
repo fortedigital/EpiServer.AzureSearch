@@ -1,8 +1,14 @@
 namespace Forte.EpiServer.AzureSearch.Plugin
 {
-    public enum UpdateOrRecreateResult
+    public class UpdateOrRecreateResult
     {
-        Ok,
-        Recreated,
+        public UpdateOrRecreateResult(UpdateOrRecreateResultEnum type, string recreationReason)
+        {
+            Type = type;
+            RecreationReason = recreationReason;
+        }
+
+        public UpdateOrRecreateResultEnum Type { get; }
+        public string RecreationReason { get; }
     }
 }

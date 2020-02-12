@@ -1,4 +1,4 @@
-#Forte EpiServer Azure Search
+# Forte EpiServer Azure Search
 
 This code ads search functionality to your EpiServer project based on Azure Cognitive Search service
 
