@@ -128,27 +128,6 @@
     <Reference Include="EPiServer.Events, Version=11.13.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
       <HintPath>packages\EPiServer.Framework.11.13.0\lib\net461\EPiServer.Events.dll</HintPath>
     </Reference>
-    <Reference Include="EPiServer.Find, Version=13.2.1.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.13.2.1\lib\net461\EPiServer.Find.dll</HintPath>
-    </Reference>
-    <Reference Include="EPiServer.Find.Blocks, Version=1.0.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.Cms.13.2.1\lib\net461\EPiServer.Find.Blocks.dll</HintPath>
-    </Reference>
-    <Reference Include="EPiServer.Find.Cms, Version=13.2.1.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.Cms.13.2.1\lib\net461\EPiServer.Find.Cms.dll</HintPath>
-    </Reference>
-    <Reference Include="EPiServer.Find.Framework, Version=13.2.1.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.Framework.13.2.1\lib\net461\EPiServer.Find.Framework.dll</HintPath>
-    </Reference>
-    <Reference Include="EPiServer.Find.Optimizations, Version=13.2.1.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.Cms.13.2.1\lib\net461\EPiServer.Find.Optimizations.dll</HintPath>
-    </Reference>
-    <Reference Include="EPiServer.Find.Statistics, Version=13.2.1.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.Cms.13.2.1\lib\net461\EPiServer.Find.Statistics.dll</HintPath>
-    </Reference>
-    <Reference Include="EPiServer.Find.UI, Version=13.2.1.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
-      <HintPath>packages\EPiServer.Find.Cms.13.2.1\lib\net461\EPiServer.Find.UI.dll</HintPath>
-    </Reference>
     <Reference Include="EPiServer.Forms, Version=4.25.0.0, Culture=neutral, PublicKeyToken=8fe83dea738b45b7, processorArchitecture=MSIL">
       <HintPath>packages\EPiServer.Forms.4.25.0\lib\EPiServer.Forms.dll</HintPath>
     </Reference>
@@ -311,9 +290,6 @@
     </Reference>
     <Reference Include="POSSIBLE.RobotsTxtHandler, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\POSSIBLE.RobotsTxtHandler.4.0.0.0\lib\net45\POSSIBLE.RobotsTxtHandler.dll</HintPath>
-    </Reference>
-    <Reference Include="PowerSlice, Version=4.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\PowerSlice.4.0.1\lib\net461\PowerSlice.dll</HintPath>
     </Reference>
     <Reference Include="StructureMap, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\StructureMap.4.7.0\lib\net45\StructureMap.dll</HintPath>
@@ -499,9 +475,6 @@
     <Compile Include="Business\Employee\DataGenerator.cs" />
     <Compile Include="Business\Employee\EmployeeContainerLookup.cs" />
     <Compile Include="Business\Employee\EmployeeDataImportJob.cs" />
-    <Compile Include="Business\Employee\EmployeeExpertiseSelectionFactory.cs" />
-    <Compile Include="Business\Employee\EmployeeLocationSelectionFactory.cs" />
-    <Compile Include="Business\Employee\EmployeeLocationSelector.cs" />
     <Compile Include="Business\Employee\EmployeeSettingsModel.cs" />
     <Compile Include="Business\FormKPI\FilledInFormKpi.cs" />
     <Compile Include="Business\Forms\FormEventsInitialization.cs" />
@@ -524,13 +497,6 @@
     <Compile Include="Business\Parking\ParkingGateway.cs" />
     <Compile Include="Business\Parking\ParkingServer.cs" />
     <Compile Include="Business\Parking\ParkingStatus.cs" />
-    <Compile Include="Business\PowerSlice\ArticleSlice.cs" />
-    <Compile Include="Business\PowerSlice\BlockSlice.cs" />
-    <Compile Include="Business\PowerSlice\BlogSlice.cs" />
-    <Compile Include="Business\PowerSlice\EverythingSlice.cs" />
-    <Compile Include="Business\PowerSlice\MyPagesSlice.cs" />
-    <Compile Include="Business\PowerSlice\NewsSlice.cs" />
-    <Compile Include="Business\PowerSlice\PagesSlice.cs" />
     <Compile Include="Business\QuickNavigator\AddAdminMode.cs" />
     <Compile Include="Business\Rendering\AlloyContentAreaRenderer.cs" />
     <Compile Include="Business\Rendering\ErrorHandlingContentRenderer.cs" />
@@ -552,13 +518,8 @@
     <Compile Include="Controllers\BlogItemController.cs" />
     <Compile Include="Controllers\BlogListBlockController.cs" />
     <Compile Include="Controllers\BlogStartPageController.cs" />
-    <Compile Include="Controllers\ClosestLocationBlockController.cs" />
     <Compile Include="Controllers\ContactBlockController.cs" />
     <Compile Include="Controllers\DefaultPageController.cs" />
-    <Compile Include="Controllers\EmployeeExpertiseController.cs" />
-    <Compile Include="Controllers\EmployeeLocationPageController.cs" />
-    <Compile Include="Controllers\EmployeeSearchPageController.cs" />
-    <Compile Include="Controllers\FindPageController.cs" />
     <Compile Include="Controllers\ImageFileController.cs" />
     <Compile Include="Controllers\ImageGalleryBlockController.cs" />
     <Compile Include="Controllers\PageControllerBase.cs" />
@@ -573,12 +534,13 @@
     <Compile Include="Controllers\StartPageController.cs" />
     <Compile Include="Controllers\TagCloudBlockController.cs" />
     <Compile Include="Controllers\VideoFileController.cs" />
+    <Compile Include="ForteSearch\ForteSearchInitializationModule.cs" />
+    <Compile Include="ForteSearch\PageSearchProvider.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Global.cs" />
     <Compile Include="Helpers\CategorizableExtensions.cs" />
-    <Compile Include="Helpers\GeoPosition.cs" />
     <Compile Include="Helpers\HtmlHelpers.cs" />
     <Compile Include="Helpers\UrlHelpers.cs" />
     <Compile Include="Models\Blocks\BlogArchiveBlock.cs" />
@@ -587,7 +549,6 @@
     <Compile Include="Models\Blocks\CallToActionBlock.cs" />
     <Compile Include="Models\Blocks\CarouselBlock.cs" />
     <Compile Include="Models\Blocks\CarouselItemBlock.cs" />
-    <Compile Include="Models\Blocks\ClosestLocationBlock.cs" />
     <Compile Include="Models\Blocks\ContactBlock.cs" />
     <Compile Include="Models\Blocks\FacebookBlock.cs" />
     <Compile Include="Models\Blocks\FormElements\StyledTextBoxElementBlock.cs" />
@@ -646,8 +607,6 @@
     <Compile Include="Models\ViewModels\ClosestLocationViewModel.cs" />
     <Compile Include="Models\ViewModels\ContactBlockModel.cs" />
     <Compile Include="Models\ViewModels\ContentRenderingErrorModel.cs" />
-    <Compile Include="Models\ViewModels\EmployeeSearchContentModel.cs" />
-    <Compile Include="Models\ViewModels\FindPageViewModel.cs" />
     <Compile Include="Models\ViewModels\ImageViewModel.cs" />
     <Compile Include="Models\ViewModels\IPageViewModel.cs" />
     <Compile Include="Models\ViewModels\LayoutModel.cs" />
@@ -658,7 +617,6 @@
     <Compile Include="Models\ViewModels\PreviewModel.cs" />
     <Compile Include="Models\ViewModels\ProfilePageViewModel.cs" />
     <Compile Include="Models\ViewModels\RssReaderBlockViewModel.cs" />
-    <Compile Include="Models\ViewModels\FindSearchContentModel.cs" />
     <Compile Include="Models\ViewModels\SearchContentModel.cs" />
     <Compile Include="Models\ViewModels\SearchHit.cs" />
     <Compile Include="Models\ViewModels\TagCloudModel.cs" />
@@ -979,7 +937,6 @@
     <Content Include="Views\Shared\Blocks\Carousel.cshtml" />
     <Content Include="Views\RssReaderBlock\Index.cshtml" />
     <Content Include="Views\Shared\Blocks\YouTubeBlock.cshtml" />
-    <Content Include="Views\FindPage\Index.cshtml" />
     <Content Include="Views\EmployeeExpertise\Index.cshtml" />
     <Content Include="Views\EmployeeLocationPage\Index.cshtml" />
     <Content Include="Views\EmployeePage\Index.cshtml" />
@@ -1058,6 +1015,7 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Business\PowerSlice" />
     <Folder Include="ClientResources\Scripts\" />
     <Folder Include="Models\Register\" />
     <Folder Include="modules\_protected\EPiServer.Labs.LanguageManager\" />
