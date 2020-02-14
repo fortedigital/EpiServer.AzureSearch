@@ -1,6 +1,5 @@
 ﻿using EPiServer.Core;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Web;
@@ -38,30 +37,7 @@ namespace AlloyDemoKit.Models.Pages
         [Display(GroupName = Global.GroupNames.Contact, Name = "Email address", Order = 6)]
         public virtual string Email { get; set; }
 
-        [Display(GroupName = Global.GroupNames.Contact, Name = "Location", Order = 7)]
-        [UIHint(UIHintsEmployee.EmployeeLocation)]
-        public virtual string EmployeeLocation { get; set; }
-
-        [Display(GroupName = Global.GroupNames.Contact, Name = "Areas of expertise", Order = 8)]
-        [SelectMany(SelectionFactoryType = typeof(EmployeeExpertiseSelectionFactory))]
-        public virtual string EmployeeExpertise { get; set; }
-
         [Display(GroupName = Global.GroupNames.Contact, Name = "Description", Order = 9)]
         public virtual XhtmlString Description { get; set; }
-
-        public virtual List<string> EmployeeExpertiseList
-        {
-            get
-            {
-                if (!string.IsNullOrWhiteSpace(this.EmployeeExpertise))
-                {
-                    return new List<string>(this.EmployeeExpertise.Split(",".ToCharArray()));
-                }
-                else
-                {
-                    return new List<string>();
-                }
-            }
-        }
     }
 }

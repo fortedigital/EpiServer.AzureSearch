@@ -184,8 +184,6 @@ namespace AlloyDemoKit.Business.Employee
             page.Phone = fields[3];
             page.Email = fields[4];
             page.JobTitle = fields[5];
-            page.EmployeeLocation = fields[6];
-            page.EmployeeExpertise = fields[7];
             page.Description = new XhtmlString(fields[8]);
             page.ImageUrl = fields[9];
         }

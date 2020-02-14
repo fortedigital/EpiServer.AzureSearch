@@ -1,8 +1,6 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using EPiServer.DataAbstraction;
 using EPiServer.DataAnnotations;
-using EPiServer.Find;
 using TedGustaf.Episerver.GoogleMapsEditor.Shell;
 
 namespace AlloyDemoKit.Models.Pages
@@ -36,29 +34,5 @@ namespace AlloyDemoKit.Models.Pages
             GroupName = Global.GroupNames.Location,
             Order = 4)]
         public virtual string Country { get; set; }
-
-
-        [ScaffoldColumn(false)]
-        public GeoLocation Coordinates
-        {
-            get
-            {
-                if (string.IsNullOrWhiteSpace(GoogleLocation))
-                {
-                    return null;
-                }
-                int splitter = GoogleLocation.IndexOf(',');
-                if (splitter <= 0)
-                {
-                    return null;
-                }
-
-                double latitude = 0, longitude = 0;
-                latitude = Convert.ToDouble(GoogleLocation.Substring(0, splitter));
-                longitude = Convert.ToDouble(GoogleLocation.Substring(splitter+1));
-
-                return new GeoLocation(latitude, longitude);
-            }
-        }
     }
 }
