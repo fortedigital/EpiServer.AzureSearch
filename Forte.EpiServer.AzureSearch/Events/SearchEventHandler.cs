@@ -28,8 +28,10 @@ namespace Forte.EpiServer.AzureSearch.Events
                 return;
             }
             
-            var document = _contentDocumentBuilder.Build(contentEventArgs.Content);
-            Task.Run(() => _azureSearchService.IndexAsync(document));
+            var contentInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(contentEventArgs.Content.ContentLink);
+            var documents = contentInAllLanguageVersions.Select(c => _contentDocumentBuilder.Build(c));
+            
+            Task.Run(() => _azureSearchService.IndexAsync(documents));
         }
 
         public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
