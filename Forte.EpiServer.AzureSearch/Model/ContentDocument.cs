@@ -18,6 +18,7 @@ namespace Forte.EpiServer.AzureSearch.Model
         [IsSearchable]
         public string ContentName { get; set; }
         
+        [IsFilterable]
         public int[] ContentPath { get; set; }
         
         [IsFilterable]

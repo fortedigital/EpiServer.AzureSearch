@@ -24,7 +24,6 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             _indexGarbageCollector = indexGarbageCollector;
             _cancellationToken = new CancellationTokenSource();
             IsStoppable = true;
-            
         }
 
         public override string Execute()
@@ -34,12 +33,11 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             
             OnStatusChanged("Ensuring valid index definition");
             
-            var updateOrRecreateResult = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
-            
-            var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult.Type}\n";
-            if (updateOrRecreateResult.Type == UpdateOrRecreateResultEnum.Recreated)
+            var (updateOrRecreateResult, recreationReason) = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
+            var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult}\n";
+            if (updateOrRecreateResult == UpdateOrRecreateResult.Recreated)
             {
-                message += $"Recreation reason: {updateOrRecreateResult.RecreationReason}\n";
+                message += $"Recreation reason: {recreationReason}\n";
             }
             
             var indexContentRequest = new IndexContentRequest

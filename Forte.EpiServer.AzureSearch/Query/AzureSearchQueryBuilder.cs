@@ -34,17 +34,17 @@ namespace Forte.EpiServer.AzureSearch.Query
             return this;
         }
 
-//        public AzureSearchQueryBuilder HighlightFields(params string[] fields)
-//        {
-//            foreach (var field in fields ?? new string[0])
-//            {
-//                query.HighlightFields.Add(field);
-//            }
-//
-//            HighlightField.Bold.Apply(query);
-//            
-//            return this;
-//        }
+        public AzureSearchQueryBuilder HighlightFields(params string[] fields)
+        {
+            foreach (var field in fields ?? new string[0])
+            {
+                _query.HighlightFields.Add(field);
+            }
+
+            HighlightField.Bold.Apply(_query);
+            
+            return this;
+        }
 
         public AzureSearchQueryBuilder Facets(params string[] facets)
         {
@@ -96,6 +96,23 @@ namespace Forte.EpiServer.AzureSearch.Query
             _query.Skip = count;
             
             return this;
+        }
+        
+        private sealed class HighlightField
+        {
+            public static HighlightField Bold => new HighlightField("<b>", "</b>");
+            private readonly string _preTag;
+            private readonly string _postTag;
+            private HighlightField(string preTag, string postTag)
+            {
+                _preTag = preTag;
+                _postTag = postTag;
+            }
+            public void Apply(AzureSearchQuery query)
+            {
+                query.HighlightPreTag = _preTag;
+                query.HighlightPostTag = _postTag;
+            }
         }
     }
 }

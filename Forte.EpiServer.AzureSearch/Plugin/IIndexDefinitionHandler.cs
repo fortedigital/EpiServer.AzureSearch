@@ -4,6 +4,6 @@ namespace Forte.EpiServer.AzureSearch.Plugin
 {
     public interface IIndexDefinitionHandler
     {
-        Task<UpdateOrRecreateResult> UpdateOrRecreateIndex();
+        Task<(UpdateOrRecreateResult result, string recreationReason)> UpdateOrRecreateIndex();
     }
 }
