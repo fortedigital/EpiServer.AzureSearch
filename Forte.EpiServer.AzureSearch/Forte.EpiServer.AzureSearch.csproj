@@ -248,6 +248,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AzureSearchService.cs" />
+    <Compile Include="BulkSearchHelper.cs" />
     <Compile Include="Configuration\AzureSearchServiceInitializationModule.cs" />
     <Compile Include="Configuration\AzureSearchServiceConfiguration.cs" />
     <Compile Include="Configuration\DefaultAzureSearchServiceInitializationModule.cs" />
