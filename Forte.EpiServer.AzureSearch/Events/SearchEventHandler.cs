@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -45,6 +46,16 @@ namespace Forte.EpiServer.AzureSearch.Events
                 UpdateTreeInIndex(contentEventArgs.Content);
             }
         }
+        
+        public void OnSavingContent(object sender, ContentEventArgs contentEventArgs)
+        {
+            var content = contentEventArgs.Content;
+            var pagePreviousVersion = GetPagePreviousVersion(content.ContentLink);
+            if (IsContentMarkedAsExpired(contentEventArgs, pagePreviousVersion))
+            {
+                DeleteTreeFromIndex(content);
+            }
+        }
 
         private void DeleteTreeFromIndex(IContent root)
         {
@@ -70,6 +81,18 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
             
             return listResult;
+        }
+        
+        private static bool IsContentMarkedAsExpired(ContentEventArgs contentEventArgs, IVersionable pagePreviousVersion)
+        {
+            return pagePreviousVersion != null && contentEventArgs.Content is PageData page &&
+                   pagePreviousVersion.StopPublish != page.StopPublish && page.StopPublish <= DateTime.Now;
+        }
+
+        private PageData GetPagePreviousVersion(ContentReference reference)
+        {
+            var previousPageReference = reference.ToReferenceWithoutVersion();
+            return _contentLoader.Get<PageData>(previousPageReference);
         }
     }
 }
