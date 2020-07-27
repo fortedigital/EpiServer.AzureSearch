@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Forte.EpiServer.AzureSearch.Query
 {
-    public class AzureSearchQuery
+    public class AzureSearchQuery : ICloneable
     {
         public string SearchTerm { get; set; }
         private int _top = 1000;
@@ -14,7 +14,7 @@ namespace Forte.EpiServer.AzureSearch.Query
             {
                 if (value > 1000)
                 {
-                    throw new ArgumentException($"Max value of Top is 1000. Consider using {nameof(BulkSearchHelper)}");
+                    throw new ArgumentException($"Max value of Top is 1000. Consider using {nameof(AzureSearchServiceExtension.SearchBatch)} extension method");
                 }
 
                 _top = value;
@@ -27,5 +27,10 @@ namespace Forte.EpiServer.AzureSearch.Query
         public string HighlightPostTag { get; set; }
         public int Skip { get; set; }
         public string ScoringProfile { get; set; }
+        
+        public object Clone()
+        {
+            return this.MemberwiseClone();
+        }
     }
 }
