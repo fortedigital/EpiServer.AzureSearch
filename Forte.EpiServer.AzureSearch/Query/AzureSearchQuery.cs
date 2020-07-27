@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 
 namespace Forte.EpiServer.AzureSearch.Query
 {
@@ -14,7 +15,7 @@ namespace Forte.EpiServer.AzureSearch.Query
             {
                 if (value > 1000)
                 {
-                    throw new ArgumentException($"Max value of Top is 1000. Consider using {nameof(AzureSearchServiceExtension.SearchBatch)} extension method");
+                    throw new ArgumentException($"Max value of Top is 1000. Consider using {nameof(AzureSearchServiceExtensions.SearchBatch)} extension method");
                 }
 
                 _top = value;
@@ -30,7 +31,9 @@ namespace Forte.EpiServer.AzureSearch.Query
         
         public object Clone()
         {
-            return this.MemberwiseClone();
+            var serializedObject = JsonConvert.SerializeObject(this);
+            
+            return JsonConvert.DeserializeObject<AzureSearchQuery>(serializedObject);
         }
     }
 }

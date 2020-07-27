@@ -6,7 +6,7 @@ using Microsoft.Azure.Search.Models;
 
 namespace Forte.EpiServer.AzureSearch
 {
-    public static class AzureSearchServiceExtension
+    public static class AzureSearchServiceExtensions
     {
         public static async Task<IReadOnlyCollection<SearchResult<T>>> SearchBatchAsync<T>(this IAzureSearchService searchService, AzureSearchQuery query, string indexName = null, int batchSize = 1000) where T : SearchDocument
         {
