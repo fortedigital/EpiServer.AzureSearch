@@ -24,6 +24,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             {
                 contentEvents.PublishedContent += searchEventHandler.OnPublishedContent;
                 contentEvents.MovedContent += searchEventHandler.OnMovedContent;
+                contentEvents.SavingContent += searchEventHandler.OnSavingContent;
 
                 Task.Run(() => azureSearchService.CreateOrUpdateIndexAsync<TDocument>(indexSpecificationProvider.GetIndexSpecification()))
                     .ContinueWith(t =>
@@ -40,6 +41,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             var contentEvents = context.Locate.Advanced.GetInstance<IContentEvents>();
             contentEvents.PublishedContent -= searchEventHandler.OnPublishedContent;
             contentEvents.MovedContent -= searchEventHandler.OnMovedContent;
+            contentEvents.SavingContent -= searchEventHandler.OnSavingContent;
         }
         
         public virtual void ConfigureContainer(ServiceConfigurationContext context)
