@@ -97,7 +97,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
             
             var previousPageReference = reference.ToReferenceWithoutVersion();
-            return previousPageReference != null ? _contentLoader.Get<PageData>(previousPageReference) : null;
+            return _contentLoader.Get<PageData>(previousPageReference);
         }
     }
 }
