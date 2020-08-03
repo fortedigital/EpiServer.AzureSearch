@@ -51,7 +51,7 @@ namespace Forte.EpiServer.AzureSearch.Events
         {
             var content = contentEventArgs.Content;
             var pagePreviousVersion = GetPagePreviousVersion(content.ContentLink);
-            if (IsContentMarkedAsExpired(contentEventArgs, pagePreviousVersion))
+            if (pagePreviousVersion != null && IsContentMarkedAsExpired(contentEventArgs, pagePreviousVersion))
             {
                 DeleteTreeFromIndex(content);
             }
@@ -91,6 +91,11 @@ namespace Forte.EpiServer.AzureSearch.Events
 
         private PageData GetPagePreviousVersion(ContentReference reference)
         {
+            if (ContentReference.IsNullOrEmpty(reference))
+            {
+                return null;
+            }
+            
             var previousPageReference = reference.ToReferenceWithoutVersion();
             return _contentLoader.Get<PageData>(previousPageReference);
         }
