@@ -3,6 +3,9 @@ using EPiServer.Core;
 using EPiServer.Framework.Initialization;
 using EPiServer.Logging;
 using EPiServer.ServiceLocation;
+using Forte.EpiServer.AzureSearch.ContentExtractor;
+using Forte.EpiServer.AzureSearch.ContentExtractor.Block;
+using Forte.EpiServer.AzureSearch.ContentExtractor.Page;
 using Forte.EpiServer.AzureSearch.Events;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Plugin;
@@ -50,7 +53,8 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             {
                 c.For<AzureSearchServiceConfiguration>().Singleton().Use(() => GetSearchServiceConfiguration());
                 c.For<DefaultDocumentBuilder>().Use<DefaultDocumentBuilder>();
-                c.For<IContentExtractorController>().Use<ContentExtractorController>();
+                c.For<IPageContentExtractorController>().Use<PageContentExtractorController>();
+                c.For<IBlockContentExtractorController>().Use<BlockContentExtractorController>();
                 c.For<IIndexNamingConvention>().Use<PrefixedIndexNamingConvention>();
                 c.For<IAzureSearchService>()
                     .Singleton()
@@ -58,7 +62,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
                 c.For<IContentIndexer>().Use<ContentIndexer<TDocument>>();
                 c.For<SearchEventHandler<TDocument>>().Singleton().Use<SearchEventHandler<TDocument>>();
                 c.For<IContentDocumentBuilder<TDocument>>().Use<TDocumentBuilder>();
-                c.For<IContentExtractor>().Use<SearchableContentExtractor>();
+                c.For<ISearchableContentExtractor>().Use<SearchableContentExtractor>();
                 c.For<IIndexSpecificationProvider>().Use<NullIndexSpecificationProvider>();
                 c.For<IIndexDefinitionHandler>().Use<IndexDefinitionHandler<TDocument>>();
                 c.For<IIndexGarbageCollector>().Use<IndexGarbageCollector<TDocument>>();

@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using EPiServer.Core;
+using Forte.EpiServer.AzureSearch.Model;
 
-namespace Forte.EpiServer.AzureSearch.Model
+namespace Forte.EpiServer.AzureSearch.ContentExtractor.Block
 {
-    public class ContentExtractorController : IContentExtractorController
+    public class BlockContentExtractorController : IBlockContentExtractorController
     {
-        private readonly IEnumerable<IContentExtractor> _extractors;
+        private readonly IEnumerable<IBlockContentExtractor> _extractors;
 
-        public ContentExtractorController(IEnumerable<IContentExtractor> extractors)
+        public BlockContentExtractorController(IEnumerable<IBlockContentExtractor> extractors)
         {
             _extractors = extractors;
         }

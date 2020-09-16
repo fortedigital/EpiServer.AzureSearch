@@ -220,6 +220,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
       <Private>True</Private>
@@ -256,6 +257,15 @@
     <Compile Include="Configuration\LocalDevIndexNamingConvention.cs" />
     <Compile Include="Configuration\NullIndexSpecificationProvider.cs" />
     <Compile Include="Configuration\PrefixedIndexNamingConvention.cs" />
+    <Compile Include="ContentExtractor\Block\BlockContentExtractorController.cs" />
+    <Compile Include="ContentExtractor\Block\IBlockContentExtractor.cs" />
+    <Compile Include="ContentExtractor\Block\IPageContentExtractorController.cs" />
+    <Compile Include="ContentExtractor\IContentExtractor.cs" />
+    <Compile Include="ContentExtractor\ISearchableContentExtractor.cs" />
+    <Compile Include="ContentExtractor\Page\PageContentExtractorController.cs" />
+    <Compile Include="ContentExtractor\Page\IPageContentExtractorController.cs" />
+    <Compile Include="ContentExtractor\Page\IPageContentExtractor.cs" />
+    <Compile Include="ContentExtractor\SearchableContentExtractor.cs" />
     <Compile Include="Events\SearchEventHandler.cs" />
     <Compile Include="Extensions\AzureSearchServiceExtensions.cs" />
     <Compile Include="Extensions\ContentExtensions.cs" />
@@ -267,12 +277,8 @@
     <Compile Include="IIndexSpecification.cs" />
     <Compile Include="Model\ContentDocument.cs" />
     <Compile Include="Model\ContentExtractionResult.cs" />
-    <Compile Include="Model\ContentExtractorController.cs" />
     <Compile Include="Model\DefaultDocumentBuilder.cs" />
     <Compile Include="Model\IContentDocumentBuilder.cs" />
-    <Compile Include="Model\IContentExtractor.cs" />
-    <Compile Include="Model\IContentExtractorController.cs" />
-    <Compile Include="Model\SearchableContentExtractor.cs" />
     <Compile Include="Model\SearchDocument.cs" />
     <Compile Include="Model\ISearchableWithImage.cs" />
     <Compile Include="Plugin\ContentIndexer.cs" />

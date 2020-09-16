@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Castle.Core.Internal;
 using EPiServer;
 using EPiServer.Core;
+using EPiServer.DataAbstraction;
+using EPiServer.ServiceLocation;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
@@ -24,15 +27,68 @@ namespace Forte.EpiServer.AzureSearch.Events
 
         public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
         {
-            if (!contentEventArgs.Content.ShouldIndex())
+            var documentsToIndex = new List<T>();
+            var content = contentEventArgs.Content;
+            switch (contentEventArgs.Content)
             {
-                return;
+                case PageData _:
+                    if (!contentEventArgs.Content.ShouldIndex())
+                    {
+                        return;
+                    }
+            
+                    var contentInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(content.ContentLink);
+                    documentsToIndex = contentInAllLanguageVersions
+                        .Select(c => _contentDocumentBuilder.Build(c))
+                        .ToList();
+            
+                    break;
+                case BlockData _:
+                    var blockParentPagesLinks = GetBlockParentPages(content.ContentLink);
+                    foreach (var blockParentPageLink in blockParentPagesLinks)
+                    {
+                        var blockParentPageInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(blockParentPageLink);
+                        var documents = blockParentPageInAllLanguageVersions
+                            .Select(c => _contentDocumentBuilder.Build(c))
+                            .ToList();
+                        documentsToIndex.AddRange(documents);
+                    }
+                    break;
             }
-            
-            var contentInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(contentEventArgs.Content.ContentLink);
-            var documents = contentInAllLanguageVersions.Select(c => _contentDocumentBuilder.Build(c));
-            
-            Task.Run(() => _azureSearchService.IndexAsync(documents));
+
+            if (documentsToIndex.IsNullOrEmpty() == false)
+            {
+                Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
+            }
+        }
+
+        private static IEnumerable<ContentReference> GetBlockParentPages(ContentReference contentLink)
+        {
+            var linkRepository = ServiceLocator.Current.GetInstance<IContentSoftLinkRepository>();
+            var softLinks = linkRepository.Load(contentLink, true);
+            var parents = new List<ContentReference>();
+            foreach (var softLink in softLinks)
+            {
+                var parentContentLink = HasParent(softLink) ? softLink.OwnerContentLink.ToReferenceWithoutVersion() : null;
+                var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
+                var content = contentLoader.Get<IContent>(parentContentLink);
+                if (content is PageData)
+                {
+                    parents.Add(parentContentLink);
+                }
+                else
+                {
+                    parents.AddRange(GetBlockParentPages(parentContentLink));
+                }
+            }
+
+            return parents;
+        }
+
+        private static bool HasParent(SoftLink link)
+        {
+            return link.SoftLinkType == ReferenceType.PageLinkReference &&
+                   !ContentReference.IsNullOrEmpty(link.OwnerContentLink);
         }
 
         public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
