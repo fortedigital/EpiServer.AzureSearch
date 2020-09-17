@@ -261,14 +261,15 @@
     <Compile Include="ContentExtractor\Block\IBlockContentExtractor.cs" />
     <Compile Include="ContentExtractor\Block\IPageContentExtractorController.cs" />
     <Compile Include="ContentExtractor\IContentExtractor.cs" />
-    <Compile Include="ContentExtractor\ISearchableContentExtractor.cs" />
+    <Compile Include="ContentExtractor\IIndexableContentExtractor.cs" />
     <Compile Include="ContentExtractor\Page\PageContentExtractorController.cs" />
     <Compile Include="ContentExtractor\Page\IPageContentExtractorController.cs" />
     <Compile Include="ContentExtractor\Page\IPageContentExtractor.cs" />
-    <Compile Include="ContentExtractor\SearchableContentExtractor.cs" />
+    <Compile Include="ContentExtractor\IndexableContentExtractor.cs" />
     <Compile Include="Events\SearchEventHandler.cs" />
     <Compile Include="Extensions\AzureSearchServiceExtensions.cs" />
     <Compile Include="Extensions\ContentExtensions.cs" />
+    <Compile Include="Extensions\ContentExtractorExtensions.cs" />
     <Compile Include="Extensions\ContentLoaderExtensions.cs" />
     <Compile Include="Extensions\EnumerableExtensions.cs" />
     <Compile Include="Extensions\XhtmlStringExtensions.cs" />
@@ -279,6 +280,7 @@
     <Compile Include="Model\ContentExtractionResult.cs" />
     <Compile Include="Model\DefaultDocumentBuilder.cs" />
     <Compile Include="Model\IContentDocumentBuilder.cs" />
+    <Compile Include="Model\IndexableAttribute.cs" />
     <Compile Include="Model\SearchDocument.cs" />
     <Compile Include="Model\ISearchableWithImage.cs" />
     <Compile Include="Plugin\ContentIndexer.cs" />

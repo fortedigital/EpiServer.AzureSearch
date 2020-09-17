@@ -16,13 +16,17 @@ namespace Forte.EpiServer.AzureSearch.Events
     {
         private readonly IAzureSearchService _azureSearchService;
         private readonly IContentDocumentBuilder<T> _contentDocumentBuilder;
-        private readonly IContentLoader _contentLoader;
+        private readonly IContentRepository _contentRepository;
+        private readonly IContentSoftLinkRepository _linkRepository;
 
-        public SearchEventHandler(IAzureSearchService azureSearchService, IContentDocumentBuilder<T> contentDocumentBuilder, IContentLoader contentLoader)
+
+        public SearchEventHandler(IAzureSearchService azureSearchService, IContentDocumentBuilder<T> contentDocumentBuilder,
+            IContentRepository contentRepository, IContentSoftLinkRepository linkRepository)
         {
             _azureSearchService = azureSearchService;
             _contentDocumentBuilder = contentDocumentBuilder;
-            _contentLoader = contentLoader;
+            _contentRepository = contentRepository;
+            _linkRepository = linkRepository;
         }
 
         public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
@@ -36,22 +40,15 @@ namespace Forte.EpiServer.AzureSearch.Events
                     {
                         return;
                     }
-            
-                    var contentInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(content.ContentLink);
-                    documentsToIndex = contentInAllLanguageVersions
-                        .Select(c => _contentDocumentBuilder.Build(c))
-                        .ToList();
+
+                    documentsToIndex.AddRange(GetContentDocuments(content.ContentLink));
             
                     break;
                 case BlockData _:
                     var blockParentPagesLinks = GetBlockParentPages(content.ContentLink);
                     foreach (var blockParentPageLink in blockParentPagesLinks)
                     {
-                        var blockParentPageInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(blockParentPageLink);
-                        var documents = blockParentPageInAllLanguageVersions
-                            .Select(c => _contentDocumentBuilder.Build(c))
-                            .ToList();
-                        documentsToIndex.AddRange(documents);
+                        documentsToIndex.AddRange(GetContentDocuments(blockParentPageLink));
                     }
                     break;
             }
@@ -62,16 +59,38 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
 
-        private static IEnumerable<ContentReference> GetBlockParentPages(ContentReference contentLink)
+        private IEnumerable<T> GetContentDocuments(ContentReference contentLink)
         {
-            var linkRepository = ServiceLocator.Current.GetInstance<IContentSoftLinkRepository>();
-            var softLinks = linkRepository.Load(contentLink, true);
+            var blockParentPageInAllLanguageVersions = _contentRepository.GetAllLanguageVersions(contentLink);
+            var documents = blockParentPageInAllLanguageVersions
+                .Select(c => _contentDocumentBuilder.Build(c))
+                .ToList();
+            return documents;
+        }
+
+        private IEnumerable<ContentReference> GetBlockParentPages(ContentReference contentLink)
+        {
             var parents = new List<ContentReference>();
+            
+            AddParentsFromContentReferences(contentLink, parents);
+            AddParentsFromXhtmlProperties(contentLink, parents);
+
+            return parents;
+        }
+
+        private void AddParentsFromContentReferences(ContentReference contentLink, List<ContentReference> parents)
+        {
+            var referencesToContent = _contentRepository.GetReferencesToContent(contentLink, false);
+            parents.AddRange(referencesToContent.Select(rtc => rtc.OwnerID));
+        }
+        
+        private void AddParentsFromXhtmlProperties(ContentReference contentLink, List<ContentReference> parents)
+        {
+            var softLinks = _linkRepository.Load(contentLink, true);
             foreach (var softLink in softLinks)
             {
                 var parentContentLink = HasParent(softLink) ? softLink.OwnerContentLink.ToReferenceWithoutVersion() : null;
-                var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
-                var content = contentLoader.Get<IContent>(parentContentLink);
+                var content = _contentRepository.Get<IContent>(parentContentLink);
                 if (content is PageData)
                 {
                     parents.Add(parentContentLink);
@@ -81,8 +100,6 @@ namespace Forte.EpiServer.AzureSearch.Events
                     parents.AddRange(GetBlockParentPages(parentContentLink));
                 }
             }
-
-            return parents;
         }
 
         private static bool HasParent(SoftLink link)
@@ -128,12 +145,12 @@ namespace Forte.EpiServer.AzureSearch.Events
         private IEnumerable<T> GetDocumentsToReindex(IContent root, bool includeDeleted = false)
         {
             var listResult = new List<T>();
-            listResult.AddRange(_contentLoader.GetAllLanguageVersions(root.ContentLink).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
+            listResult.AddRange(_contentRepository.GetAllLanguageVersions(root.ContentLink).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
             
-            var descendants = _contentLoader.GetDescendents(root.ContentLink);
+            var descendants = _contentRepository.GetDescendents(root.ContentLink);
             foreach (var descendant in descendants)
             {
-                listResult.AddRange( _contentLoader.GetAllLanguageVersions(descendant).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
+                listResult.AddRange( _contentRepository.GetAllLanguageVersions(descendant).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
             }
             
             return listResult;
@@ -153,7 +170,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
             
             var previousPageReference = reference.ToReferenceWithoutVersion();
-            return _contentLoader.TryGet<PageData>(previousPageReference, out var pageData) ? pageData : null;
+            return _contentRepository.TryGet<PageData>(previousPageReference, out var pageData) ? pageData : null;
         }
     }
 }

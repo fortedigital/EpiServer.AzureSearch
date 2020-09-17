@@ -19,7 +19,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
         {
             var textBuilder = new StringBuilder();
             var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
-            var blockExtractors = ServiceLocator.Current.GetInstance<IEnumerable<IBlockContentExtractor>>();
+            var blockExtractors = ServiceLocator.Current.GetInstance<IEnumerable<IBlockContentExtractor>>().ToList();
             
             foreach (var fragment in xhtmlString.Fragments.GetFilteredFragments(PrincipalInfo
                 .AnonymousPrincipal))
@@ -32,10 +32,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                     {
                         var content = contentLoader.Get<IContent>(contentFragment.ContentLink);
                         
-                        var extractionResults = blockExtractors
-                            .Where(e => e.CanExtract(content))
-                            .Select(e => e.Extract(content))
-                            .ToList();
+                        var extractionResults = blockExtractors.GetExtractionResults(content);
 
                         var text = string.Join(" ", extractionResults.SelectMany(r => r.Values));
                         textBuilder.Append(text);
@@ -44,15 +41,14 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                     case StaticFragment staticFragment:
                         var html = staticFragment.InternalFormat;
                         var htmlWithoutScripts = RemoveScripts(html);
-                        var textFromHtml = StripHtml(htmlWithoutScripts);
-                        var textFromHtmlWithTrailingSpace =
-                            textFromHtml.EndsWith(" ") ? textFromHtml : textFromHtml + "";
-                        textBuilder.Append(textFromHtmlWithTrailingSpace);
+                        var htmlWithTrailingSpace =
+                            htmlWithoutScripts.EndsWith(" ") ? htmlWithoutScripts : htmlWithoutScripts + "";
+                        textBuilder.Append(htmlWithTrailingSpace);
                         break;
                 }
             }
-
-            return textBuilder.ToString();
+            
+            return StripHtml(textBuilder.ToString());
         }
 
         private static string StripHtml(string html)

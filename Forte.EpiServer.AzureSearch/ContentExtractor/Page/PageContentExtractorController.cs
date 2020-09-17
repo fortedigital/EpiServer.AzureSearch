@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EPiServer.Core;
+using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.ContentExtractor.Page
@@ -38,10 +39,8 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Page
                 return Enumerable.Empty<ContentExtractionResult>();
             }
 
-            var extractionResults = _extractors.Where(e => e.CanExtract(content))
-                .Select(e => e.Extract(content))
-                .ToList();
-            
+            var extractionResults = _extractors.GetExtractionResults(content);
+
             result.AddRange(extractionResults);
 
             var relatedContentList = extractionResults.SelectMany(r => r.ContentReferences);
