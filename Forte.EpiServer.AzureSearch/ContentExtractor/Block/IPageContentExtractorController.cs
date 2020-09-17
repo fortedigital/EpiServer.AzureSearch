@@ -5,6 +5,6 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Block
 {
     public interface IBlockContentExtractorController
     {
-        IEnumerable<string> Extract(IContent content);
+        IEnumerable<string> Extract(IContentData content);
     }
 }

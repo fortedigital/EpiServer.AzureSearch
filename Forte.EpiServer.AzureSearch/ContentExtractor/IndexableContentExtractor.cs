@@ -14,8 +14,12 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
         {
             return true;
         }
+        public bool CanExtract(object content)
+        {
+            return true;
+        }
 
-        public ContentExtractionResult Extract(IContent content)
+        public ContentExtractionResult Extract(IContentData content)
         {
             var stringValues = new List<string>();
 
@@ -29,7 +33,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         stringValues.Add(xhtmlString.GetPlainTextContent());
                         break;
                     case BlockData localBlock:
-                        stringValues.Add(ExtractTextFromBlock((IContent) localBlock));
+                        stringValues.Add(ExtractTextFromBlock(localBlock));
                         break;
                     case ContentReference contentReference:
                     {
@@ -58,7 +62,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             return new ContentExtractionResult(stringValues, null);
         }
 
-        private static string ExtractTextFromBlock(IContent blockContent)
+        private static string ExtractTextFromBlock(IContentData blockContent)
         {
             var blockExtractors = ServiceLocator.Current.GetInstance<IEnumerable<IBlockContentExtractor>>();
             var blockExtractorsController = new BlockContentExtractorController(blockExtractors);

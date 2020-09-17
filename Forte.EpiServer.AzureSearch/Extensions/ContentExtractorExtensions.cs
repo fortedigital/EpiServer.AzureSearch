@@ -8,7 +8,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
 {
     public static class ContentExtractorExtensions
     {
-        public static List<ContentExtractionResult> GetExtractionResults(this IEnumerable<IContentExtractor> contentExtractors, IContent content)
+        public static List<ContentExtractionResult> GetExtractionResults(this IEnumerable<IContentExtractor> contentExtractors, IContentData content)
         {
             return contentExtractors
                 .Where(e => e.CanExtract(content))

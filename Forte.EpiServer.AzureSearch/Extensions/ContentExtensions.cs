@@ -45,7 +45,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             return builder.ToString();
         }
         
-        public static IEnumerable<PropertyData> GetIndexableProperties(this IContent content, Func<PropertyData, bool> propertyPredicate = null)
+        public static IEnumerable<PropertyData> GetIndexableProperties(this IContentData content, Func<PropertyData, bool> propertyPredicate = null)
         {
             var predicate = propertyPredicate ?? (_ => true);
             var propertyDataCollection = content.Property.Where(predicate);

@@ -15,30 +15,18 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Block
             _extractors = extractors;
         }
 
-        public IEnumerable<string> Extract(IContent content)
+        public IEnumerable<string> Extract(IContentData content)
         {
-            return ExtractInternal(content, new HashSet<ContentReference>())
+            return ExtractInternal(content)
                 .SelectMany(r => r.Values)
                 .Where(v => string.IsNullOrEmpty(v) == false)
                 .Distinct();
         }
 
-        private IEnumerable<ContentExtractionResult> ExtractInternal(IContent content, ISet<ContentReference> visitedContent)
+        private IEnumerable<ContentExtractionResult> ExtractInternal(IContentData content)
         {
             var result = new List<ContentExtractionResult>();
-
-            if (visitedContent.Contains(content.ContentLink))
-            {
-                return result;
-            }
-
-            visitedContent.Add(content.ContentLink);
-
-            if (content.IsDeleted)
-            {
-                return Enumerable.Empty<ContentExtractionResult>();
-            }
-
+            
             var extractionResults = _extractors.GetExtractionResults(content);
             
             result.AddRange(extractionResults);
@@ -47,7 +35,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Block
 
             foreach (var relatedContent in relatedContentList)
             {
-                result.AddRange(ExtractInternal(relatedContent, visitedContent));
+                result.AddRange(ExtractInternal(relatedContent));
             }
             
             return result;
