@@ -28,11 +28,9 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Block
             var result = new List<ContentExtractionResult>();
             
             var extractionResults = _extractors.GetExtractionResults(content);
-            
             result.AddRange(extractionResults);
 
             var relatedContentList = extractionResults.SelectMany(r => r.ContentReferences);
-
             foreach (var relatedContent in relatedContentList)
             {
                 result.AddRange(ExtractInternal(relatedContent));

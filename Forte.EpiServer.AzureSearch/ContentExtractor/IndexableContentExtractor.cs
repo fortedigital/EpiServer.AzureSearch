@@ -10,11 +10,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
     public class IndexableContentExtractor : IIndexableContentExtractor
     {
-        public bool CanExtract(IContent content)
-        {
-            return true;
-        }
-        public bool CanExtract(object content)
+        public bool CanExtract(IContentData content)
         {
             return true;
         }

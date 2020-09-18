@@ -5,7 +5,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
     public interface IContentExtractor
     {
-        bool CanExtract(object content);
+        bool CanExtract(IContentData content);
         ContentExtractionResult Extract(IContentData content);
     }
 }

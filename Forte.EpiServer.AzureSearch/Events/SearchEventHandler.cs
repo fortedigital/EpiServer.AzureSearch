@@ -75,7 +75,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             AddParentsFromContentReferences(contentLink, parents);
             AddParentsFromXhtmlProperties(contentLink, parents);
 
-            return parents;
+            return parents.DistinctBy(parent=>parent.ID);
         }
 
         private void AddParentsFromContentReferences(ContentReference contentLink, List<ContentReference> parents)
