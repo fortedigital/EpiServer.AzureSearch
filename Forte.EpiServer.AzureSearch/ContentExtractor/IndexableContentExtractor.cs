@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using EPiServer;
 using EPiServer.Core;
-using EPiServer.ServiceLocation;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
@@ -9,6 +8,12 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
     public class IndexableContentExtractor : IIndexableContentExtractor
     {
+        private readonly IContentLoader _contentLoader;
+
+        public IndexableContentExtractor(IContentLoader contentLoader)
+        {
+            _contentLoader = contentLoader;
+        }
         public bool CanExtract(IContentData content)
         {
             return true;
@@ -32,8 +37,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         break;
                     case ContentReference contentReference:
                     {
-                        var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
-                        var propertyContent = contentLoader.Get<IContent>(contentReference);
+                        var propertyContent = _contentLoader.Get<IContent>(contentReference);
 
                         if (propertyContent is BlockData == false)
                         {

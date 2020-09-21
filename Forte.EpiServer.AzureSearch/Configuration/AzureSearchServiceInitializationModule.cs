@@ -62,7 +62,6 @@ namespace Forte.EpiServer.AzureSearch.Configuration
                 c.For<IContentIndexer>().Use<ContentIndexer<TDocument>>();
                 c.For<SearchEventHandler<TDocument>>().Singleton().Use<SearchEventHandler<TDocument>>();
                 c.For<IContentDocumentBuilder<TDocument>>().Use<TDocumentBuilder>();
-                c.For<IIndexableContentExtractor>().Use<IndexableContentExtractor>();
                 c.For<IIndexSpecificationProvider>().Use<NullIndexSpecificationProvider>();
                 c.For<IIndexDefinitionHandler>().Use<IndexDefinitionHandler<TDocument>>();
                 c.For<IIndexGarbageCollector>().Use<IndexGarbageCollector<TDocument>>();

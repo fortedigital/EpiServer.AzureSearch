@@ -66,7 +66,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             }
         }
 
-        public static bool ShouldPageIndex(this IContent content)
+        public static bool ShouldIndexPage(this IContent content)
         {
             var filterPublished = new FilterPublished();
             var filterTemplate = new FilterTemplate();

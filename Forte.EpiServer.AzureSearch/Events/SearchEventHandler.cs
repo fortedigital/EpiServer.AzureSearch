@@ -13,15 +13,15 @@ namespace Forte.EpiServer.AzureSearch.Events
     public class SearchEventHandler<T> where T : ContentDocument
     {
         private readonly IAzureSearchService _azureSearchService;
-        private readonly IContentRepository _contentRepository;
+        private readonly IContentLoader _contentLoader;
         private readonly PageSearchEventHandler<T> _pageSearchEventHandler;
         private readonly BlockSearchEventHandler<T> _blockSearchEventHandler;
 
-        public SearchEventHandler(IAzureSearchService azureSearchService, IContentRepository contentRepository,
+        public SearchEventHandler(IAzureSearchService azureSearchService, IContentLoader contentLoader,
             PageSearchEventHandler<T> pageSearchEventHandler, BlockSearchEventHandler<T> blockSearchEventHandler)
         {
             _azureSearchService = azureSearchService;
-            _contentRepository = contentRepository;
+            _contentLoader = contentLoader;
             _pageSearchEventHandler = pageSearchEventHandler;
             _blockSearchEventHandler = blockSearchEventHandler;
         }
@@ -33,7 +33,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             switch (content)
             {
                 case PageData _:
-                    var pageDocuments = !content.ShouldPageIndex()
+                    var pageDocuments = !content.ShouldIndexPage()
                         ? Enumerable.Empty<T>()
                         : _pageSearchEventHandler.GetPageContentDocuments(content.ContentLink);
                     documentsToIndex.AddRange(pageDocuments);
@@ -131,7 +131,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
             
             var previousPageReference = reference.ToReferenceWithoutVersion();
-            return _contentRepository.TryGet<PageData>(previousPageReference, out var pageData) ? pageData : null;
+            return _contentLoader.TryGet<PageData>(previousPageReference, out var pageData) ? pageData : null;
         }
     }
 }

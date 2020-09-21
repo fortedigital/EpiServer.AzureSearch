@@ -9,20 +9,20 @@ namespace Forte.EpiServer.AzureSearch.Events
 {
     public class PageSearchEventHandler<T> where T : ContentDocument
     {
-        private readonly IContentRepository _contentRepository;
+        private readonly IContentLoader _contentLoader;
         private readonly IContentDocumentBuilder<T> _contentDocumentBuilder;
         
-        public PageSearchEventHandler(IContentRepository contentRepository, IContentDocumentBuilder<T> contentDocumentBuilder)
+        public PageSearchEventHandler(IContentLoader contentLoader, IContentDocumentBuilder<T> contentDocumentBuilder)
         {
-            _contentRepository = contentRepository;
+            _contentLoader = contentLoader;
             _contentDocumentBuilder = contentDocumentBuilder;
         }
 
         public IEnumerable<T> GetPageContentDocuments(ContentReference contentLink, bool includeDeleted = false)
         {
-            var contentInAllLanguages = _contentRepository.GetAllLanguageVersions(contentLink);
+            var contentInAllLanguages = _contentLoader.GetAllLanguageVersions(contentLink);
             var documents = contentInAllLanguages
-                .Where(c => (includeDeleted && c.IsDeleted) || c.ShouldPageIndex())
+                .Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndexPage())
                 .Select(_contentDocumentBuilder.Build)
                 .ToList();
             return documents;
@@ -34,7 +34,7 @@ namespace Forte.EpiServer.AzureSearch.Events
 
             listResult.AddRange(GetPageContentDocuments(root.ContentLink, includeDeleted));
 
-            var descendants = _contentRepository.GetDescendents(root.ContentLink);
+            var descendants = _contentLoader.GetDescendents(root.ContentLink);
             foreach (var descendant in descendants)
             {
                 listResult.AddRange(GetPageContentDocuments(descendant, includeDeleted));
