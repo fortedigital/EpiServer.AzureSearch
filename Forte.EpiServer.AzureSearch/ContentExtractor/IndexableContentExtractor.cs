@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using EPiServer;
 using EPiServer.Core;
 using EPiServer.ServiceLocation;
-using Forte.EpiServer.AzureSearch.ContentExtractor.Block;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
@@ -29,7 +28,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         stringValues.Add(xhtmlString.GetPlainTextContent());
                         break;
                     case BlockData localBlock:
-                        stringValues.Add(ExtractTextFromBlock(localBlock));
+                        stringValues.Add(localBlock.ExtractTextFromBlock());
                         break;
                     case ContentReference contentReference:
                     {
@@ -40,7 +39,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         {
                             continue;
                         }
-                        stringValues.Add(ExtractTextFromBlock(propertyContent));
+                        stringValues.Add(propertyContent.ExtractTextFromBlock());
                         break;
                     }
                     default:
@@ -56,15 +55,6 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             }
 
             return new ContentExtractionResult(stringValues, null);
-        }
-
-        private static string ExtractTextFromBlock(IContentData blockContent)
-        {
-            var blockExtractors = ServiceLocator.Current.GetInstance<IEnumerable<IBlockContentExtractor>>();
-            var blockExtractorsController = new BlockContentExtractorController(blockExtractors);
-            var propertyContentExtractionResult = blockExtractorsController.Extract(blockContent);
-            var text = string.Join(" ", propertyContentExtractionResult);
-            return text;
         }
     }
 }

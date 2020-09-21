@@ -266,8 +266,11 @@
     <Compile Include="ContentExtractor\Page\IPageContentExtractorController.cs" />
     <Compile Include="ContentExtractor\Page\IPageContentExtractor.cs" />
     <Compile Include="ContentExtractor\IndexableContentExtractor.cs" />
+    <Compile Include="Events\BlockSearchEventHandler.cs" />
+    <Compile Include="Events\PageSearchEventHandler.cs" />
     <Compile Include="Events\SearchEventHandler.cs" />
     <Compile Include="Extensions\AzureSearchServiceExtensions.cs" />
+    <Compile Include="Extensions\ContentDataExtensions.cs" />
     <Compile Include="Extensions\ContentExtensions.cs" />
     <Compile Include="Extensions\ContentExtractorExtensions.cs" />
     <Compile Include="Extensions\ContentLoaderExtensions.cs" />

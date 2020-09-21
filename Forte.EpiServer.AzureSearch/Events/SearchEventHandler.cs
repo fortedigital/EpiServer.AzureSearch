@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 using Castle.Core.Internal;
 using EPiServer;
 using EPiServer.Core;
-using EPiServer.DataAbstraction;
-using EPiServer.ServiceLocation;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
@@ -15,40 +13,39 @@ namespace Forte.EpiServer.AzureSearch.Events
     public class SearchEventHandler<T> where T : ContentDocument
     {
         private readonly IAzureSearchService _azureSearchService;
-        private readonly IContentDocumentBuilder<T> _contentDocumentBuilder;
         private readonly IContentRepository _contentRepository;
-        private readonly IContentSoftLinkRepository _linkRepository;
+        private readonly PageSearchEventHandler<T> _pageSearchEventHandler;
+        private readonly BlockSearchEventHandler<T> _blockSearchEventHandler;
 
-
-        public SearchEventHandler(IAzureSearchService azureSearchService, IContentDocumentBuilder<T> contentDocumentBuilder,
-            IContentRepository contentRepository, IContentSoftLinkRepository linkRepository)
+        public SearchEventHandler(IAzureSearchService azureSearchService, IContentRepository contentRepository,
+            PageSearchEventHandler<T> pageSearchEventHandler, BlockSearchEventHandler<T> blockSearchEventHandler)
         {
             _azureSearchService = azureSearchService;
-            _contentDocumentBuilder = contentDocumentBuilder;
             _contentRepository = contentRepository;
-            _linkRepository = linkRepository;
+            _pageSearchEventHandler = pageSearchEventHandler;
+            _blockSearchEventHandler = blockSearchEventHandler;
         }
 
         public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
         {
             var documentsToIndex = new List<T>();
             var content = contentEventArgs.Content;
-            switch (contentEventArgs.Content)
+            switch (content)
             {
                 case PageData _:
-                    if (!contentEventArgs.Content.ShouldIndex())
-                    {
-                        return;
-                    }
-
-                    documentsToIndex.AddRange(GetContentDocuments(content.ContentLink));
-            
+                    var pageDocuments = !content.ShouldPageIndex()
+                        ? Enumerable.Empty<T>()
+                        : _pageSearchEventHandler.GetPageContentDocuments(content.ContentLink);
+                    documentsToIndex.AddRange(pageDocuments);
                     break;
+                
                 case BlockData _:
-                    var blockParentPagesLinks = GetBlockParentPages(content.ContentLink);
+                    var blockParentPagesLinks = _blockSearchEventHandler.GetBlockParentPages(content.ContentLink);
                     foreach (var blockParentPageLink in blockParentPagesLinks)
                     {
-                        documentsToIndex.AddRange(GetContentDocuments(blockParentPageLink));
+                        var blockParentPageDocuments =
+                            _pageSearchEventHandler.GetPageContentDocuments(blockParentPageLink);
+                        documentsToIndex.AddRange(blockParentPageDocuments);
                     }
                     break;
             }
@@ -59,110 +56,74 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
 
-        private IEnumerable<T> GetContentDocuments(ContentReference contentLink)
-        {
-            var blockParentPageInAllLanguageVersions = _contentRepository.GetAllLanguageVersions(contentLink);
-            var documents = blockParentPageInAllLanguageVersions
-                .Select(c => _contentDocumentBuilder.Build(c))
-                .ToList();
-            return documents;
-        }
-
-        private IEnumerable<ContentReference> GetBlockParentPages(ContentReference contentLink)
-        {
-            var parents = new List<ContentReference>();
-            
-            AddParentsFromContentReferences(contentLink, parents);
-            AddParentsFromXhtmlProperties(contentLink, parents);
-
-            return parents.DistinctBy(parent=>parent.ID);
-        }
-
-        private void AddParentsFromContentReferences(ContentReference contentLink, List<ContentReference> parents)
-        {
-            var referencesToContent = _contentRepository.GetReferencesToContent(contentLink, false);
-            parents.AddRange(referencesToContent.Select(rtc => rtc.OwnerID));
-        }
-        
-        private void AddParentsFromXhtmlProperties(ContentReference contentLink, List<ContentReference> parents)
-        {
-            var softLinks = _linkRepository.Load(contentLink, true);
-            foreach (var softLink in softLinks)
-            {
-                var parentContentLink = HasParent(softLink) ? softLink.OwnerContentLink.ToReferenceWithoutVersion() : null;
-                var content = _contentRepository.Get<IContent>(parentContentLink);
-                if (content is PageData)
-                {
-                    parents.Add(parentContentLink);
-                }
-                else
-                {
-                    parents.AddRange(GetBlockParentPages(parentContentLink));
-                }
-            }
-        }
-
-        private static bool HasParent(SoftLink link)
-        {
-            return link.SoftLinkType == ReferenceType.PageLinkReference &&
-                   !ContentReference.IsNullOrEmpty(link.OwnerContentLink);
-        }
-
         public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
         {
-            if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
+            var content = contentEventArgs.Content;
+            switch (content)
             {
-                DeleteTreeFromIndex(contentEventArgs.Content);
-            }
-            else
-            {
-                UpdateTreeInIndex(contentEventArgs.Content);
+                case PageData _:
+                    if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
+                    {
+                        DeletePageTreeFromIndex(content);
+                    }
+                    else
+                    {
+                        UpdatePageTreeInIndex(content);
+                    }
+                    break;
+                case BlockData _:
+                    if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
+                    {
+                        UpdateBlockParentPagesInIndex(content);
+                    }
+                    break;
             }
         }
         
         public void OnSavingContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
-            var pagePreviousVersion = GetPagePreviousVersion(content.ContentLink);
-            if (pagePreviousVersion != null && IsContentMarkedAsExpired(contentEventArgs, pagePreviousVersion))
+            var contentPreviousVersion = GetContentPreviousVersion(content.ContentLink);
+            if (contentPreviousVersion != null && IsContentMarkedAsExpired(contentEventArgs, contentPreviousVersion))
             {
-                DeleteTreeFromIndex(content);
+                switch (content)
+                {
+                    case PageData _:
+                        DeletePageTreeFromIndex(content);
+                        break;
+                    case BlockData _:
+                        UpdateBlockParentPagesInIndex(content);
+                        break;
+                }
             }
         }
 
-        private void DeleteTreeFromIndex(IContent root)
+        private void DeletePageTreeFromIndex(IContent root)
         {
-            var documentsToIndex = GetDocumentsToReindex(root, true);
+            var documentsToIndex = _pageSearchEventHandler.GetDocumentsToReindex(root, true);
             Task.Run(() => _azureSearchService.DeleteAsync(documentsToIndex.ToArray()));
         }
-
-        private void UpdateTreeInIndex(IContent root)
+        
+        private void UpdatePageTreeInIndex(IContent root)
         {
-            var documentsToIndex = GetDocumentsToReindex(root);
+            var documentsToIndex = _pageSearchEventHandler.GetDocumentsToReindex(root).ToList();
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
+        }
+        
+        private void UpdateBlockParentPagesInIndex(IContent content)
+        {
+            var documentsToIndex = _blockSearchEventHandler.GetDocumentsToReindex(content).ToList();
+
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
         }
 
-        private IEnumerable<T> GetDocumentsToReindex(IContent root, bool includeDeleted = false)
-        {
-            var listResult = new List<T>();
-            listResult.AddRange(_contentRepository.GetAllLanguageVersions(root.ContentLink).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
-            
-            var descendants = _contentRepository.GetDescendents(root.ContentLink);
-            foreach (var descendant in descendants)
-            {
-                listResult.AddRange( _contentRepository.GetAllLanguageVersions(descendant).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
-            }
-            
-            return listResult;
-        }
-        
         private static bool IsContentMarkedAsExpired(ContentEventArgs contentEventArgs, IVersionable pagePreviousVersion)
         {
             return pagePreviousVersion != null && contentEventArgs.Content is PageData page &&
                    pagePreviousVersion.StopPublish != page.StopPublish && page.StopPublish <= DateTime.Now;
         }
 
-        private PageData GetPagePreviousVersion(ContentReference reference)
+        private PageData GetContentPreviousVersion(ContentReference reference)
         {
             if (ContentReference.IsNullOrEmpty(reference))
             {

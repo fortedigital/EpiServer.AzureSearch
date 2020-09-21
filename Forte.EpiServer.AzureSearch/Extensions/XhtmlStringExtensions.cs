@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using AngleSharp;
 using AngleSharp.Dom;
@@ -9,7 +7,6 @@ using EPiServer.Core.Html;
 using EPiServer.Core.Html.StringParsing;
 using EPiServer.Security;
 using EPiServer.ServiceLocation;
-using Forte.EpiServer.AzureSearch.ContentExtractor.Block;
 
 namespace Forte.EpiServer.AzureSearch.Extensions
 {
@@ -19,10 +16,12 @@ namespace Forte.EpiServer.AzureSearch.Extensions
         {
             var textBuilder = new StringBuilder();
             var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
-            var blockExtractors = ServiceLocator.Current.GetInstance<IEnumerable<IBlockContentExtractor>>().ToList();
+
+            var xhtmlFragments = xhtmlString
+                .Fragments
+                .GetFilteredFragments(PrincipalInfo.AnonymousPrincipal);
             
-            foreach (var fragment in xhtmlString.Fragments.GetFilteredFragments(PrincipalInfo
-                .AnonymousPrincipal))
+            foreach (var fragment in xhtmlFragments)
             {
                 switch (fragment)
                 {
@@ -32,17 +31,18 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                     {
                         var content = contentLoader.Get<IContent>(contentFragment.ContentLink);
                         
-                        var extractionResults = blockExtractors.GetExtractionResults(content);
-
-                        var text = string.Join(" ", extractionResults.SelectMany(r => r.Values));
+                        var text = content.ExtractTextFromBlock();
                         textBuilder.Append(text);
                         break;
                     }
                     case StaticFragment staticFragment:
                         var html = staticFragment.InternalFormat;
                         var htmlWithoutScripts = RemoveScripts(html);
+                        
+                        const string whitespace = " ";
                         var htmlWithTrailingSpace =
-                            htmlWithoutScripts.EndsWith(" ") ? htmlWithoutScripts : htmlWithoutScripts + "";
+                            htmlWithoutScripts.EndsWith(whitespace) ? htmlWithoutScripts : htmlWithoutScripts + whitespace;
+                        
                         textBuilder.Append(htmlWithTrailingSpace);
                         break;
                 }
