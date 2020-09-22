@@ -8,10 +8,9 @@ namespace Forte.EpiServer.AzureSearch.Extensions
     {
         public static string ExtractTextFromBlock(this IContentData blockContent)
         {
-            const string blockExtractedTextSeparator = " ";
             var blockExtractorsController = ServiceLocator.Current.GetInstance<IBlockContentExtractorController>();
             var propertyContentExtractionResult = blockExtractorsController.Extract(blockContent);
-            var text = string.Join(blockExtractedTextSeparator, propertyContentExtractionResult);
+            var text = string.Join(BlockContentExtractorController.BlockExtractedTextFragmentsSeparator, propertyContentExtractionResult);
             return text;
         }
     }
