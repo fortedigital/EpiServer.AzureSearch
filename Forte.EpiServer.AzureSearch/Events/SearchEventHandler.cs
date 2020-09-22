@@ -89,7 +89,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 switch (content)
                 {
                     case PageData _:
-                        DeleteExpiredPageFromIndex(content);
+                        DeleteSpecificPageVersionFromIndex(content);
                         break;
                     case BlockData _:
                         UpdateBlockParentPagesInIndex(content);
@@ -97,10 +97,24 @@ namespace Forte.EpiServer.AzureSearch.Events
                 }
             }
         }
-
-        private void DeleteExpiredPageFromIndex(IContent content)
+        
+        public void OnDeletingContentLanguage(object sender, ContentEventArgs contentEventArgs)
         {
-            var documentToRemoveFromIndex = _pageSearchEventHandler.GetPageExpiredContentDocument(content.ContentLink);
+            var content = contentEventArgs.Content;
+            switch (content)
+            {
+                case PageData _:
+                    DeleteSpecificPageVersionFromIndex(content);
+                    break;
+                case BlockData _:
+                    UpdateBlockParentPagesInIndex(content);
+                    break;
+            }
+        }
+
+        private void DeleteSpecificPageVersionFromIndex(IContent content)
+        {
+            var documentToRemoveFromIndex = _pageSearchEventHandler.GetSpecificPageVersionContentDocument(content.ContentLink);
             Task.Run(() => _azureSearchService.DeleteAsync(new [] {documentToRemoveFromIndex}));
         }
         private void DeleteDeletedPageTreeFromIndex(IContent root)

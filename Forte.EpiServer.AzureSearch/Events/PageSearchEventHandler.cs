@@ -29,13 +29,13 @@ namespace Forte.EpiServer.AzureSearch.Events
             return documents;
         }
         
-        public T GetPageExpiredContentDocument(ContentReference contentLink)
+        public T GetSpecificPageVersionContentDocument(ContentReference contentLink)
         {
             var content = _contentLoader.Get<IContent>(contentLink);
             var document = _contentDocumentBuilder.Build(content);
             return document;
         }
-        
+
         public IEnumerable<T> GetDocumentsToReindex(IContent root, bool includeDeleted = false)
         {
             var listResult = new List<T>();

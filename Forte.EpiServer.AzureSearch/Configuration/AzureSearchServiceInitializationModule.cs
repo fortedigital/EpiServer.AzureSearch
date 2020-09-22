@@ -28,6 +28,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
                 contentEvents.PublishedContent += searchEventHandler.OnPublishedContent;
                 contentEvents.MovedContent += searchEventHandler.OnMovedContent;
                 contentEvents.SavingContent += searchEventHandler.OnSavingContent;
+                contentEvents.DeletingContentLanguage += searchEventHandler.OnDeletingContentLanguage;
 
                 Task.Run(() => azureSearchService.CreateOrUpdateIndexAsync<TDocument>(indexSpecificationProvider.GetIndexSpecification()))
                     .ContinueWith(t =>
