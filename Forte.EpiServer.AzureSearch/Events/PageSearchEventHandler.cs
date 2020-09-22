@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using EPiServer;
@@ -22,10 +23,17 @@ namespace Forte.EpiServer.AzureSearch.Events
         {
             var contentInAllLanguages = _contentLoader.GetAllLanguageVersions(contentLink);
             var documents = contentInAllLanguages
-                .Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndexPage())
+                .Where(c =>  (includeDeleted && c.IsDeleted) || c.ShouldIndexPage())
                 .Select(_contentDocumentBuilder.Build)
                 .ToList();
             return documents;
+        }
+        
+        public T GetPageExpiredContentDocument(ContentReference contentLink)
+        {
+            var content = _contentLoader.Get<IContent>(contentLink);
+            var document = _contentDocumentBuilder.Build(content);
+            return document;
         }
         
         public IEnumerable<T> GetDocumentsToReindex(IContent root, bool includeDeleted = false)

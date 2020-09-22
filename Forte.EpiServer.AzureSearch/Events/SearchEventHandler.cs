@@ -64,7 +64,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 case PageData _:
                     if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
                     {
-                        DeletePageTreeFromIndex(content);
+                        DeleteDeletedPageTreeFromIndex(content);
                     }
                     else
                     {
@@ -89,7 +89,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 switch (content)
                 {
                     case PageData _:
-                        DeletePageTreeFromIndex(content);
+                        DeleteExpiredPageFromIndex(content);
                         break;
                     case BlockData _:
                         UpdateBlockParentPagesInIndex(content);
@@ -98,10 +98,15 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
 
-        private void DeletePageTreeFromIndex(IContent root)
+        private void DeleteExpiredPageFromIndex(IContent content)
         {
-            var documentsToIndex = _pageSearchEventHandler.GetDocumentsToReindex(root, true);
-            Task.Run(() => _azureSearchService.DeleteAsync(documentsToIndex.ToArray()));
+            var documentToRemoveFromIndex = _pageSearchEventHandler.GetPageExpiredContentDocument(content.ContentLink);
+            Task.Run(() => _azureSearchService.DeleteAsync(new [] {documentToRemoveFromIndex}));
+        }
+        private void DeleteDeletedPageTreeFromIndex(IContent root)
+        {
+            var documentsToRemoveFromIndex = _pageSearchEventHandler.GetDocumentsToReindex(root, true);
+            Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex.ToArray()));
         }
         
         private void UpdatePageTreeInIndex(IContent root)
