@@ -9,10 +9,14 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
     public class IndexableContentExtractor : IIndexableContentExtractor
     {
         private readonly IContentLoader _contentLoader;
+        private readonly BlockContentExtractor _blockContentExtractor;
+        private readonly XhtmlStringExtractor _xhtmlStringExtractor;
 
-        public IndexableContentExtractor(IContentLoader contentLoader)
+        public IndexableContentExtractor(IContentLoader contentLoader, BlockContentExtractor blockContentExtractor, XhtmlStringExtractor xhtmlStringExtractor)
         {
             _contentLoader = contentLoader;
+            _blockContentExtractor = blockContentExtractor;
+            _xhtmlStringExtractor = xhtmlStringExtractor;
         }
         public bool CanExtract(IContentData content)
         {
@@ -30,10 +34,10 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 switch (property.Value)
                 {
                     case XhtmlString xhtmlString:
-                        stringValues.Add(xhtmlString.GetPlainTextContent());
+                        stringValues.Add(_xhtmlStringExtractor.GetPlainTextContent(xhtmlString));
                         break;
                     case BlockData localBlock:
-                        stringValues.Add(localBlock.ExtractTextFromBlock());
+                        stringValues.Add(_blockContentExtractor.ExtractTextFromBlock(localBlock));
                         break;
                     //TODO: check if this case is used ORM blockData
                     case ContentReference contentReference:
@@ -44,7 +48,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         {
                             continue;
                         }
-                        stringValues.Add(propertyContent.ExtractTextFromBlock());
+                        stringValues.Add(_blockContentExtractor.ExtractTextFromBlock(propertyContent));
                         break;
                     }
                     default:

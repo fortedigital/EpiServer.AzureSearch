@@ -4,12 +4,17 @@ using Forte.EpiServer.AzureSearch.ContentExtractor.Block;
 
 namespace Forte.EpiServer.AzureSearch.Extensions
 {
-    public static class ContentDataExtensions
+    public class BlockContentExtractor
     {
-        public static string ExtractTextFromBlock(this IContentData blockContent)
+        private readonly IBlockContentExtractorController _controller;
+
+        public BlockContentExtractor(IBlockContentExtractorController controller)
         {
-            var blockExtractorsController = ServiceLocator.Current.GetInstance<IBlockContentExtractorController>();
-            var propertyContentExtractionResult = blockExtractorsController.Extract(blockContent);
+            _controller = controller;
+        }
+        public string ExtractTextFromBlock(IContentData blockContent)
+        {
+            var propertyContentExtractionResult = _controller.Extract(blockContent);
             var text = string.Join(BlockContentExtractorController.BlockExtractedTextFragmentsSeparator, propertyContentExtractionResult);
             return text;
         }

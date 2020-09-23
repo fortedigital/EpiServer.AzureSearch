@@ -9,11 +9,11 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Block
     public class BlockContentExtractorController : IBlockContentExtractorController
     {
         public const string BlockExtractedTextFragmentsSeparator = " ";
-        private readonly IEnumerable<IBlockContentExtractor> _extractors;
+        private readonly IEnumerable<IContentExtractor> _extractors;
 
-        public BlockContentExtractorController(IEnumerable<IBlockContentExtractor> extractors)
+        public BlockContentExtractorController(IEnumerable<IBlockContentExtractor> blockContentExtractors, IIndexableContentExtractor indexableContentExtractor)
         {
-            _extractors = extractors;
+            _extractors = blockContentExtractors.Concat(new []{(IContentExtractor)indexableContentExtractor});
         }
 
         public IEnumerable<string> Extract(IContentData content)

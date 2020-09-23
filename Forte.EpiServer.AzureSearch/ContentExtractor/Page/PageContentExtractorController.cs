@@ -8,11 +8,11 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor.Page
 {
     public class PageContentExtractorController : IPageContentExtractorController
     {
-        private readonly IEnumerable<IPageContentExtractor> _extractors;
+        private readonly IEnumerable<IContentExtractor> _extractors;
 
-        public PageContentExtractorController(IEnumerable<IPageContentExtractor> extractors)
+        public PageContentExtractorController(IEnumerable<IPageContentExtractor> pageContentExtractors, IIndexableContentExtractor indexableContentExtractor)
         {
-            _extractors = extractors;
+            _extractors = pageContentExtractors.Concat(new []{(IContentExtractor)indexableContentExtractor});
         }
 
         public IEnumerable<string> Extract(IContent content)

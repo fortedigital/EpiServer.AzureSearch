@@ -67,6 +67,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
                 c.For<IIndexSpecificationProvider>().Use<NullIndexSpecificationProvider>();
                 c.For<IIndexDefinitionHandler>().Use<IndexDefinitionHandler<TDocument>>();
                 c.For<IIndexGarbageCollector>().Use<IndexGarbageCollector<TDocument>>();
+                c.For<IIndexableContentExtractor>().Use<IndexableContentExtractor>();
             });
         }
     }

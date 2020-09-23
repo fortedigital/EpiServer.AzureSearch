@@ -12,9 +12,15 @@ using Forte.EpiServer.AzureSearch.ContentExtractor.Block;
 
 namespace Forte.EpiServer.AzureSearch.Extensions
 {
-    public static class XhtmlStringExtensions
+    public class XhtmlStringExtractor
     {
-        public static string GetPlainTextContent(this XhtmlString xhtmlString)
+        private readonly BlockContentExtractor _blockContentExtractor;
+
+        public XhtmlStringExtractor(BlockContentExtractor blockContentExtractor)
+        {
+            _blockContentExtractor = blockContentExtractor;
+        }
+        public string GetPlainTextContent( XhtmlString xhtmlString)
         {
             var texts = new List<string>();
             var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
@@ -33,7 +39,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                     {
                         var content = contentLoader.Get<IContent>(contentFragment.ContentLink);
                         
-                        var text = content.ExtractTextFromBlock();
+                        var text = _blockContentExtractor.ExtractTextFromBlock(content);
                         texts.Add(text);
                         break;
                     }

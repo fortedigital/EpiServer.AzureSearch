@@ -259,7 +259,7 @@
     <Compile Include="Configuration\PrefixedIndexNamingConvention.cs" />
     <Compile Include="ContentExtractor\Block\BlockContentExtractorController.cs" />
     <Compile Include="ContentExtractor\Block\IBlockContentExtractor.cs" />
-    <Compile Include="ContentExtractor\Block\IPageContentExtractorController.cs" />
+    <Compile Include="ContentExtractor\Block\IBlockContentExtractorController.cs" />
     <Compile Include="ContentExtractor\IContentExtractor.cs" />
     <Compile Include="ContentExtractor\IIndexableContentExtractor.cs" />
     <Compile Include="ContentExtractor\Page\PageContentExtractorController.cs" />
