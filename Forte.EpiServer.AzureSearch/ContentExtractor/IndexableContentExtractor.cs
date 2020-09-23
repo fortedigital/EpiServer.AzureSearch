@@ -35,6 +35,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                     case BlockData localBlock:
                         stringValues.Add(localBlock.ExtractTextFromBlock());
                         break;
+                    //TODO: check if this case is used ORM blockData
                     case ContentReference contentReference:
                     {
                         var propertyContent = _contentLoader.Get<IContent>(contentReference);
