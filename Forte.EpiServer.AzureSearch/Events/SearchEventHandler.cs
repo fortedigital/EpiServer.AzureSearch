@@ -4,8 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Castle.Core.Internal;
 using EPiServer;
+using EPiServer.Cms.Shell;
 using EPiServer.Core;
-using Forte.EpiServer.AzureSearch.Extensions;
+using EPiServer.Web.Routing;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Events
@@ -16,46 +17,53 @@ namespace Forte.EpiServer.AzureSearch.Events
         private readonly IContentLoader _contentLoader;
         private readonly PageSearchEventHandler<T> _pageSearchEventHandler;
         private readonly BlockSearchEventHandler<T> _blockSearchEventHandler;
+        private readonly IUrlResolver _urlResolver;
 
         public SearchEventHandler(IAzureSearchService azureSearchService, IContentLoader contentLoader,
-            PageSearchEventHandler<T> pageSearchEventHandler, BlockSearchEventHandler<T> blockSearchEventHandler)
+            PageSearchEventHandler<T> pageSearchEventHandler, BlockSearchEventHandler<T> blockSearchEventHandler,
+            IUrlResolver urlResolver)
         {
             _azureSearchService = azureSearchService;
             _contentLoader = contentLoader;
             _pageSearchEventHandler = pageSearchEventHandler;
             _blockSearchEventHandler = blockSearchEventHandler;
+            _urlResolver = urlResolver;
         }
 
+        //Event handler for keeping 'OldUrl' in contentEventArgs
+        public void OnPublishingContent(object sender, ContentEventArgs contentEventArgs)
+        {
+            if (contentEventArgs.Content is PageData == false)
+            {
+                return;
+            }
+            var oldUrl = _urlResolver.GetUrl(new ContentReference(contentEventArgs.Content.ContentLink.ID));
+
+            if (string.IsNullOrEmpty(oldUrl) == false)
+            {
+                contentEventArgs.Items.Add(PageSearchEventHandler<T>.OldUrlKey, oldUrl);
+            }
+        }
+        
+        //Event handler for publishing page and block content
         public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
         {
-            var documentsToIndex = new List<T>();
             var content = contentEventArgs.Content;
+
             switch (content)
             {
                 case PageData _:
-                    var pageDocuments = !content.ShouldIndexPage()
-                        ? Enumerable.Empty<T>()
-                        : _pageSearchEventHandler.GetPageContentDocuments(content.ContentLink);
-                    documentsToIndex.AddRange(pageDocuments);
+                    var documentsToIndex = _pageSearchEventHandler.GetDocuments(content, contentEventArgs);
+                    Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
                     break;
-                
-                case BlockData _:
-                    var blockParentPagesLinks = _blockSearchEventHandler.GetBlockParentPages(content.ContentLink);
-                    foreach (var blockParentPageLink in blockParentPagesLinks)
-                    {
-                        var blockParentPageDocuments =
-                            _pageSearchEventHandler.GetPageContentDocuments(blockParentPageLink);
-                        documentsToIndex.AddRange(blockParentPageDocuments);
-                    }
-                    break;
-            }
 
-            if (documentsToIndex.IsNullOrEmpty() == false)
-            {
-                Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
+                case BlockData _:
+                    UpdateBlockParentPagesInIndex(content);
+                    break;
             }
         }
 
+        //Event handler for moving pages and moving pages and blocks to WasteBasket
         public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
@@ -64,7 +72,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 case PageData _:
                     if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
                     {
-                        DeleteDeletedPageTreeFromIndex(content);
+                        DeletePageTreeFromIndex(content);
                     }
                     else
                     {
@@ -80,6 +88,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
         
+        //Event handler for deleting index for expired pages and updating index of pages that use expired blocks 
         public void OnSavingContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
@@ -89,7 +98,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 switch (content)
                 {
                     case PageData _:
-                        DeleteSpecificPageVersionFromIndex(content);
+                        DeletePageFromIndex(content);
                         break;
                     case BlockData _:
                         UpdateBlockParentPagesInIndex(content);
@@ -98,13 +107,14 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
         
+        //Event handler for deleting page index(for pages) and updating page parents(for blocks) during deleting of a specific language content version
         public void OnDeletingContentLanguage(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
             switch (content)
             {
                 case PageData _:
-                    DeleteSpecificPageVersionFromIndex(content);
+                    DeletePageFromIndex(content);
                     break;
                 case BlockData _:
                     UpdateBlockParentPagesInIndex(content);
@@ -112,27 +122,29 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
 
-        private void DeleteSpecificPageVersionFromIndex(IContent content)
+        private void DeletePageFromIndex(IContent content)
         {
-            var documentToRemoveFromIndex = _pageSearchEventHandler.GetSpecificPageVersionContentDocument(content.ContentLink);
-            Task.Run(() => _azureSearchService.DeleteAsync(new [] {documentToRemoveFromIndex}));
+            var documentToRemoveFromIndex = _pageSearchEventHandler.GetPageVersionContentDocument(content.ContentLink);
+            Task.Run(() => _azureSearchService.DeleteAsync(documentToRemoveFromIndex));
         }
-        private void DeleteDeletedPageTreeFromIndex(IContent root)
+        private void DeletePageTreeFromIndex(IContent root)
         {
-            var documentsToRemoveFromIndex = _pageSearchEventHandler.GetDocumentsToReindex(root, true);
+            var documentsToRemoveFromIndex = _pageSearchEventHandler.GetPageTreeAllLanguagesDocuments(root, true);
             Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex.ToArray()));
         }
         
         private void UpdatePageTreeInIndex(IContent root)
         {
-            var documentsToIndex = _pageSearchEventHandler.GetDocumentsToReindex(root).ToList();
+            var documentsToIndex = root.IsMasterLanguageBranch()
+                ? _pageSearchEventHandler.GetPageTreeAllLanguagesDocuments(root)
+                : _pageSearchEventHandler.GetPageTreeSpecificLanguageDocuments(root);
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
         }
         
         private void UpdateBlockParentPagesInIndex(IContent content)
         {
-            var documentsToIndex = _blockSearchEventHandler.GetDocumentsToReindex(content).ToList();
-
+            var documentsToIndex = _blockSearchEventHandler.GetDocuments(content);
+            
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
         }
 

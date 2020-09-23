@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using EPiServer;
+using EPiServer.Cms.Shell;
 using EPiServer.Core;
 using EPiServer.DataAbstraction;
 using Forte.EpiServer.AzureSearch.Extensions;
@@ -20,17 +22,17 @@ namespace Forte.EpiServer.AzureSearch.Events
             _contentRepository = contentRepository;
             _contentDocumentBuilder = contentDocumentBuilder;
         }
-
-        public IEnumerable<T> GetBlockContentDocuments(ContentReference contentLink)
-        {
-            var contentInAllLanguages = _contentRepository.GetAllLanguageVersions(contentLink);
-            var documents = contentInAllLanguages
-                .Select(_contentDocumentBuilder.Build)
-                .ToList();
-            return documents;
-        }
         
-        public IEnumerable<ContentReference> GetBlockParentPages(ContentReference contentLink)
+        public IReadOnlyCollection<T> GetDocuments(IContent block)
+        {
+            var documents = block.IsMasterLanguageBranch()
+                ? GetParentPagesAllLanguagesDocuments(block)
+                : GetParentPagesSpecificLanguageDocuments(block);
+
+            return documents.ToList();
+        }
+
+        private IEnumerable<ContentReference> GetBlockParentPagesInBlockLanguage(ContentReference contentLink)
         {
             var parents = new List<ContentReference>();
             
@@ -39,7 +41,7 @@ namespace Forte.EpiServer.AzureSearch.Events
 
             return parents.DistinctBy(parent => parent.ID);
         }
-        
+
         private void AddParentsFromContentReferences(ContentReference contentLink, List<ContentReference> parents)
         {
             var referencesToContent = _contentRepository.GetReferencesToContent(contentLink, false);
@@ -59,7 +61,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 }
                 else
                 {
-                    parents.AddRange(GetBlockParentPages(parentContentLink));
+                    parents.AddRange(GetBlockParentPagesInBlockLanguage(parentContentLink));
                 }
             }
         }
@@ -70,12 +72,34 @@ namespace Forte.EpiServer.AzureSearch.Events
                    !ContentReference.IsNullOrEmpty(link.OwnerContentLink);
         }
 
-        public IEnumerable<T> GetDocumentsToReindex(IContent root)
+        private IEnumerable<T> GetParentPagesAllLanguagesDocuments(IContent root)
         {
             var listResult = new List<T>();
 
-            var parents = GetBlockParentPages(root.ContentLink)
-                .SelectMany(GetBlockContentDocuments);
+            var parents = GetBlockParentPagesInBlockLanguage(root.ContentLink)
+                .SelectMany(GetPageAllLanguageContentDocuments);
+            listResult.AddRange(parents);
+
+            return listResult;
+        }
+        
+        private IEnumerable<T> GetPageAllLanguageContentDocuments(ContentReference contentLink)
+        {
+            var contentInAllLanguages = _contentRepository.GetAllLanguageVersions(contentLink);
+            var documents = contentInAllLanguages
+                .Select(_contentDocumentBuilder.Build)
+                .ToList();
+            return documents;
+        }
+
+        private IEnumerable<T> GetParentPagesSpecificLanguageDocuments(IContent root)
+        {
+            var listResult = new List<T>();
+
+            var parents = GetBlockParentPagesInBlockLanguage(root.ContentLink)
+                .Select(contentLink => _contentRepository.Get<IContent>(contentLink))
+                .Select(content => _contentDocumentBuilder.Build(content));
+                
             listResult.AddRange(parents);
 
             return listResult;
