@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using EPiServer.Core;
 
-namespace Forte.EpiServer.AzureSearch.ContentExtractor.Page
+namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
-    public interface IPageContentExtractorController
+    public interface IContentExtractorController
     {
         IEnumerable<string> Extract(IContent content);
     }

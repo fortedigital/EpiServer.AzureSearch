@@ -6,24 +6,20 @@ using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
-    public class IndexableContentExtractor : IIndexableContentExtractor
+    public class IndexableContentExtractor : IContentExtractor
     {
         private readonly IContentLoader _contentLoader;
-        private readonly BlockContentExtractor _blockContentExtractor;
-        private readonly XhtmlStringExtractor _xhtmlStringExtractor;
 
-        public IndexableContentExtractor(IContentLoader contentLoader, BlockContentExtractor blockContentExtractor, XhtmlStringExtractor xhtmlStringExtractor)
+        public IndexableContentExtractor(IContentLoader contentLoader)
         {
             _contentLoader = contentLoader;
-            _blockContentExtractor = blockContentExtractor;
-            _xhtmlStringExtractor = xhtmlStringExtractor;
         }
         public bool CanExtract(IContentData content)
         {
             return true;
         }
 
-        public ContentExtractionResult Extract(IContentData content)
+        public ContentExtractionResult Extract(IContentData content, ContentExtractorController extractor)
         {
             var stringValues = new List<string>();
 
@@ -34,10 +30,10 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 switch (property.Value)
                 {
                     case XhtmlString xhtmlString:
-                        stringValues.Add(_xhtmlStringExtractor.GetPlainTextContent(xhtmlString));
+                        stringValues.Add(XhtmlStringExtractor.GetPlainTextContent(xhtmlString, extractor));
                         break;
                     case BlockData localBlock:
-                        stringValues.Add(_blockContentExtractor.ExtractTextFromBlock(localBlock));
+                        stringValues.AddRange(extractor.Extract(localBlock));
                         break;
                     //TODO: check if this case is used ORM blockData
                     case ContentReference contentReference:
@@ -48,7 +44,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         {
                             continue;
                         }
-                        stringValues.Add(_blockContentExtractor.ExtractTextFromBlock(propertyContent));
+                        stringValues.AddRange(extractor.Extract(propertyContent));
                         break;
                     }
                     default:

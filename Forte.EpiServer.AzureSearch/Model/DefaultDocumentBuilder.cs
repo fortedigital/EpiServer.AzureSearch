@@ -4,7 +4,7 @@ using EPiServer;
 using EPiServer.Core;
 using EPiServer.DataAbstraction;
 using EPiServer.Web.Routing;
-using Forte.EpiServer.AzureSearch.ContentExtractor.Page;
+using Forte.EpiServer.AzureSearch.ContentExtractor;
 using Forte.EpiServer.AzureSearch.Extensions;
 
 namespace Forte.EpiServer.AzureSearch.Model
@@ -13,9 +13,9 @@ namespace Forte.EpiServer.AzureSearch.Model
     {
         public DefaultDocumentBuilder(IUrlResolver urlResolver, 
             IContentLoader contentLoader, 
-            IPageContentExtractorController pageContentExtractorController,
+            IContentExtractorController extractor,
             IContentTypeRepository contentTypeRepository) 
-            : base(urlResolver, contentLoader, pageContentExtractorController, contentTypeRepository)
+            : base(urlResolver, contentLoader, extractor, contentTypeRepository)
         {
         }
     }
@@ -24,17 +24,17 @@ namespace Forte.EpiServer.AzureSearch.Model
     {
         protected readonly IUrlResolver UrlResolver;
         protected readonly IContentLoader ContentLoader;
-        protected readonly IPageContentExtractorController PageContentExtractorController;
+        protected readonly IContentExtractorController Extractor;
         protected readonly IContentTypeRepository ContentTypeRepository;
 
         protected DefaultDocumentBuilder(IUrlResolver urlResolver, 
             IContentLoader contentLoader, 
-            IPageContentExtractorController pageContentExtractorController,
+            IContentExtractorController extractor,
             IContentTypeRepository contentTypeRepository)
         {
             UrlResolver = urlResolver;
             ContentLoader = contentLoader;
-            PageContentExtractorController = pageContentExtractorController;
+            Extractor = extractor;
             ContentTypeRepository = contentTypeRepository;
         }
 
@@ -77,7 +77,7 @@ namespace Forte.EpiServer.AzureSearch.Model
             var contentAncestors = ContentLoader.GetAncestors(content.ContentLink);
 
             document.ContentPath = contentAncestors.Reverse().Skip(1).Select(c => c.ContentLink.ID).ToArray();
-            document.ContentBody = PageContentExtractorController.Extract(content).ToArray();
+            document.ContentBody = Extractor.Extract(content).ToArray();
 
             return document;
         }
