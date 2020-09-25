@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using EPiServer;
 using EPiServer.Core;
-using EPiServer.Filters;
-using EPiServer.Security;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 

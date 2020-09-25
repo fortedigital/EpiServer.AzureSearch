@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using EPiServer.Core;
-using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.ContentExtractor
@@ -16,30 +15,33 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             _extractors = contentExtractors;
         }
 
-        public IEnumerable<string> Extract(IContent content)
+        public IEnumerable<string> ExtractPage(IContent content)
         {
-            return ExtractInternal(content, new HashSet<ContentReference>(), this)
-                .SelectMany(r => r.Values)
-                .Where(v => string.IsNullOrEmpty(v) == false)
-                .Distinct();
+            var results = ExtractPageInternal(content, new HashSet<ContentReference>(), this);
+            return FlattenResults(results);
         }
         
-        public IEnumerable<string> Extract(IContentData content)
+        public string ExtractBlock(IContentData content)
         {
-            return ExtractInternal(content, this)
+            var results = ExtractBlockInternal(content, this);
+            var texts = FlattenResults(results);
+            return string.Join(BlockExtractedTextFragmentsSeparator, texts);
+        }
+
+        private static IEnumerable<string> FlattenResults(IEnumerable<ContentExtractionResult> results)
+        {
+            return results
                 .SelectMany(r => r.Values)
                 .Where(v => string.IsNullOrEmpty(v) == false)
                 .Distinct();
         }
 
-        private IEnumerable<ContentExtractionResult> ExtractInternal(IContent content,
+        private IEnumerable<ContentExtractionResult> ExtractPageInternal(IContent content,
             ISet<ContentReference> visitedContent, ContentExtractorController extractor)
         {
-            var result = new List<ContentExtractionResult>();
-
             if (visitedContent.Contains(content.ContentLink))
             {
-                return result;
+                return Enumerable.Empty<ContentExtractionResult>();
             }
 
             visitedContent.Add(content.ContentLink);
@@ -49,34 +51,43 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 return Enumerable.Empty<ContentExtractionResult>();
             }
 
-            var extractionResults = _extractors.GetExtractionResults(content, extractor);
+            var results = new List<ContentExtractionResult>();
+            var extractionResults = GetExtractionResults(_extractors, content, extractor);
+            results.AddRange(extractionResults);
 
+            var relatedContentReferences = extractionResults.SelectMany(r => r.ContentReferences);
+
+            foreach (var relatedContentReference in relatedContentReferences)
+            {
+                results.AddRange(ExtractPageInternal(relatedContentReference, visitedContent, extractor));
+            }
+            
+            return results;
+        }
+
+        private IEnumerable<ContentExtractionResult> ExtractBlockInternal(IContentData content, ContentExtractorController extractor)
+        {
+            var result = new List<ContentExtractionResult>();
+            
+            var extractionResults = GetExtractionResults(_extractors, content, extractor);
             result.AddRange(extractionResults);
 
             var relatedContentList = extractionResults.SelectMany(r => r.ContentReferences);
-
             foreach (var relatedContent in relatedContentList)
             {
-                result.AddRange(ExtractInternal(relatedContent, visitedContent, extractor));
+                result.AddRange(ExtractBlockInternal(relatedContent, extractor));
             }
             
             return result;
         }
 
-        private IEnumerable<ContentExtractionResult> ExtractInternal(IContentData content, ContentExtractorController extractor)
+        private static List<ContentExtractionResult> GetExtractionResults(IEnumerable<IContentExtractor> contentExtractors, IContentData content,
+            ContentExtractorController extractor)
         {
-            var result = new List<ContentExtractionResult>();
-            
-            var extractionResults = _extractors.GetExtractionResults(content, extractor);
-            result.AddRange(extractionResults);
-
-            var relatedContentList = extractionResults.SelectMany(r => r.ContentReferences);
-            foreach (var relatedContent in relatedContentList)
-            {
-                result.AddRange(ExtractInternal(relatedContent, extractor));
-            }
-            
-            return result;
+            return contentExtractors
+                .Where(e => e.CanExtract(content))
+                .Select(e => e.Extract(content, extractor))
+                .ToList();
         }
     }
 }

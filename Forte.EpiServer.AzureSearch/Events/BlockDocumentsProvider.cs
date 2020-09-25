@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using EPiServer;
 using EPiServer.Cms.Shell;
@@ -10,13 +9,13 @@ using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Events
 {
-    public class BlockSearchEventHandler<T> where T : ContentDocument
+    public class BlockDocumentsProvider<T> where T : ContentDocument
     {
         private readonly IContentSoftLinkRepository _linkRepository;
         private readonly IContentRepository _contentRepository;
         private readonly IContentDocumentBuilder<T> _contentDocumentBuilder;
 
-        public BlockSearchEventHandler(IContentSoftLinkRepository linkRepository, IContentRepository contentRepository, IContentDocumentBuilder<T> contentDocumentBuilder)
+        public BlockDocumentsProvider(IContentSoftLinkRepository linkRepository, IContentRepository contentRepository, IContentDocumentBuilder<T> contentDocumentBuilder)
         {
             _linkRepository = linkRepository;
             _contentRepository = contentRepository;

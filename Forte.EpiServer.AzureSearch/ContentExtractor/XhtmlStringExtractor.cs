@@ -7,21 +7,24 @@ using EPiServer.Core;
 using EPiServer.Core.Html;
 using EPiServer.Core.Html.StringParsing;
 using EPiServer.Security;
-using EPiServer.ServiceLocation;
-using Forte.EpiServer.AzureSearch.ContentExtractor;
 
-namespace Forte.EpiServer.AzureSearch.Extensions
+namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
-    public static class XhtmlStringExtractor
+    public class XhtmlStringExtractor
     {
-        public static string GetPlainTextContent(XhtmlString xhtmlString, ContentExtractorController extractor)
+        private readonly IContentLoader _contentLoader;
+        public XhtmlStringExtractor(IContentLoader contentLoader)
+        {
+            _contentLoader = contentLoader;
+        }
+
+        public string GetPlainTextContent(XhtmlString xhtmlString, ContentExtractorController extractor)
         {
             if (xhtmlString == null)
             {
                 return string.Empty;
             }
             var texts = new List<string>();
-            var contentLoader = ServiceLocator.Current.GetInstance<IContentLoader>();
 
             var xhtmlFragments = xhtmlString
                 .Fragments
@@ -35,9 +38,9 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                         continue;
                     case ContentFragment contentFragment:
                     {
-                        var content = contentLoader.Get<IContent>(contentFragment.ContentLink);
+                        var content = _contentLoader.Get<IContent>(contentFragment.ContentLink);
                         
-                        texts.AddRange(extractor.Extract(content));
+                        texts.Add(extractor.ExtractBlock(content));
                         break;
                     }
                     case StaticFragment staticFragment:

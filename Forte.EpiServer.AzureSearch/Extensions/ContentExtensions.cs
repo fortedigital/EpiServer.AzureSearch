@@ -23,8 +23,8 @@ namespace Forte.EpiServer.AzureSearch.Extensions
 
             return content.ContentLink.GetDocumentUniqueId(language);
         }
-        
-        public static string GetDocumentUniqueId(this ContentReference contentReference, string language)
+
+        private static string GetDocumentUniqueId(this ContentReference contentReference, string language)
         {
             var builder = new StringBuilder();
 
@@ -75,6 +75,15 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             var isPublished = !filterPublished.ShouldFilter(content);
             
             return anonymousHasAccess && hasTemplate && isPublished;
+        }
+        
+        public static bool ShouldIndexBlock(this IContent content)
+        {
+            var filterPublished = new FilterPublished();
+            var anonymousHasAccess = FilterAccess.QueryDistinctAccessEdit(content, AccessLevel.Read, PrincipalInfo.AnonymousPrincipal);
+            var isPublished = !filterPublished.ShouldFilter(content);
+            
+            return anonymousHasAccess && isPublished;
         }
     }
 }

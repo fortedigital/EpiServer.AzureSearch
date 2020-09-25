@@ -9,10 +9,12 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
     public class IndexableContentExtractor : IContentExtractor
     {
         private readonly IContentLoader _contentLoader;
+        private readonly XhtmlStringExtractor _xhtmlStringExtractor;
 
-        public IndexableContentExtractor(IContentLoader contentLoader)
+        public IndexableContentExtractor(IContentLoader contentLoader, XhtmlStringExtractor xhtmlStringExtractor)
         {
             _contentLoader = contentLoader;
+            _xhtmlStringExtractor = xhtmlStringExtractor;
         }
         public bool CanExtract(IContentData content)
         {
@@ -21,45 +23,50 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
 
         public ContentExtractionResult Extract(IContentData content, ContentExtractorController extractor)
         {
-            var stringValues = new List<string>();
+            var texts = new List<string>();
 
             var properties = content.GetIndexableProperties();
 
             foreach (var property in properties)
             {
-                switch (property.Value)
+                var textsFromProperty = ExtractTextFromProperty(extractor, property);
+                if (string.IsNullOrEmpty(textsFromProperty) == false)
                 {
-                    case XhtmlString xhtmlString:
-                        stringValues.Add(XhtmlStringExtractor.GetPlainTextContent(xhtmlString, extractor));
-                        break;
-                    case BlockData localBlock:
-                        stringValues.AddRange(extractor.Extract(localBlock));
-                        break;
-                    //TODO: check if this case is used ORM blockData
-                    case ContentReference contentReference:
-                    {
-                        var propertyContent = _contentLoader.Get<IContent>(contentReference);
-
-                        if (propertyContent is BlockData == false)
-                        {
-                            continue;
-                        }
-                        stringValues.AddRange(extractor.Extract(propertyContent));
-                        break;
-                    }
-                    default:
-                    {
-                        if (property.Value != null)
-                        {
-                            stringValues.Add(property.Value.ToString());
-                        }
-
-                        break;
-                    }
+                    texts.Add(textsFromProperty);
                 }
             }
 
-            return new ContentExtractionResult(stringValues, null);
+            return new ContentExtractionResult(texts, null);
+        }
+
+        private string ExtractTextFromProperty(ContentExtractorController extractor, PropertyData property)
+        {
+            switch (property.Value)
+            {
+                case XhtmlString xhtmlString:
+                    return _xhtmlStringExtractor.GetPlainTextContent(xhtmlString, extractor);
+                case BlockData localBlock:
+                    return extractor.ExtractBlock(localBlock);
+                case ContentReference contentReference:
+                {
+                    var propertyContent = _contentLoader.Get<IContent>(contentReference);
+
+                    return propertyContent is BlockData 
+                        ? extractor.ExtractBlock(propertyContent)
+                        : string.Empty;
+                }
+                default:
+                {
+                    if (property.Value == null)
+                    {
+                        return string.Empty;
+                    }
+                    var text = property.Value.ToString();
+                    return string.IsNullOrEmpty(text) == false
+                        ? text
+                        : string.Empty;
+                }
+            }
         }
     }
 }

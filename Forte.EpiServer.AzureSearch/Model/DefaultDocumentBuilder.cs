@@ -77,7 +77,7 @@ namespace Forte.EpiServer.AzureSearch.Model
             var contentAncestors = ContentLoader.GetAncestors(content.ContentLink);
 
             document.ContentPath = contentAncestors.Reverse().Skip(1).Select(c => c.ContentLink.ID).ToArray();
-            document.ContentBody = Extractor.Extract(content).ToArray();
+            document.ContentBody = Extractor.ExtractPage(content).ToArray();
 
             return document;
         }

@@ -25,6 +25,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             {
                 contentEvents.PublishingContent += searchEventHandler.OnPublishingContent;
                 contentEvents.PublishedContent += searchEventHandler.OnPublishedContent;
+                contentEvents.MovingContent += searchEventHandler.OnMovingContent;
                 contentEvents.MovedContent += searchEventHandler.OnMovedContent;
                 contentEvents.SavingContent += searchEventHandler.OnSavingContent;
                 contentEvents.DeletingContentLanguage += searchEventHandler.OnDeletingContentLanguage;
