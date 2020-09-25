@@ -18,7 +18,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             _contentLoader = contentLoader;
         }
 
-        public string GetPlainTextContent(XhtmlString xhtmlString, ContentExtractorController extractor)
+        public string GetPlainTextContent(XhtmlString xhtmlString, IContentExtractorController extractor)
         {
             if (xhtmlString == null)
             {

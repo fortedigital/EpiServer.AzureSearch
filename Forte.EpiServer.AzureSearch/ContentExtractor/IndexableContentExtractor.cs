@@ -21,7 +21,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             return true;
         }
 
-        public ContentExtractionResult Extract(IContentData content, ContentExtractorController extractor)
+        public ContentExtractionResult Extract(IContentData content, IContentExtractorController extractor)
         {
             var texts = new List<string>();
 
@@ -39,7 +39,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             return new ContentExtractionResult(texts, null);
         }
 
-        private string ExtractTextFromProperty(ContentExtractorController extractor, PropertyData property)
+        private string ExtractTextFromProperty(IContentExtractorController extractor, PropertyData property)
         {
             switch (property.Value)
             {
