@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using EPiServer;
 using EPiServer.Core;
-using EPiServer.Filters;
-using EPiServer.Security;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 
@@ -66,7 +64,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
 
         private async Task IndexLanguageVersions(ContentReference contentReference, IndexContentRequest indexContentRequest)
         {
-            foreach (var languageVersion in _contentLoader.GetAllLanguageVersions(contentReference).Where(c => c.ShouldIndex()))
+            foreach (var languageVersion in _contentLoader.GetAllLanguageVersions(contentReference).Where(c => c.ShouldIndexPage()))
             {
                 indexContentRequest.OnStatusChanged($"Indexing content: Name: {languageVersion.Name}, ContentLinkId: {languageVersion.ContentLink.ID}");
                 var contentDocument = _documentBuilder.Build(languageVersion);

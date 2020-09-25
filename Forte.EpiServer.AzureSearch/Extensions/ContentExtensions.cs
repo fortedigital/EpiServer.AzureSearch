@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using EPiServer.Core;
-using EPiServer.DataAnnotations;
 using EPiServer.Filters;
 using EPiServer.Security;
+using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Extensions
 {
@@ -23,8 +23,8 @@ namespace Forte.EpiServer.AzureSearch.Extensions
 
             return content.ContentLink.GetDocumentUniqueId(language);
         }
-        
-        public static string GetDocumentUniqueId(this ContentReference contentReference, string language)
+
+        private static string GetDocumentUniqueId(this ContentReference contentReference, string language)
         {
             var builder = new StringBuilder();
 
@@ -44,7 +44,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             return builder.ToString();
         }
         
-        public static IEnumerable<PropertyData> GetSearchableProperties(this IContent content, Func<PropertyData, bool> propertyPredicate = null)
+        public static IEnumerable<PropertyData> GetIndexableProperties(this IContentData content, Func<PropertyData, bool> propertyPredicate = null)
         {
             var predicate = propertyPredicate ?? (_ => true);
             var propertyDataCollection = content.Property.Where(predicate);
@@ -58,15 +58,15 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                     continue;                    
                 }
                 
-                var searchableAttribute = property.GetCustomAttribute<SearchableAttribute>();
-                if (searchableAttribute != null && searchableAttribute.IsSearchable)
+                var indexableAttribute = property.GetCustomAttribute<IndexableAttribute>();
+                if (indexableAttribute != null && indexableAttribute.IsIndexable)
                 {
                     yield return propertyData;
                 }
             }
         }
 
-        public static bool ShouldIndex(this IContent content)
+        public static bool ShouldIndexPage(this IContent content)
         {
             var filterPublished = new FilterPublished();
             var filterTemplate = new FilterTemplate();
@@ -75,6 +75,15 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             var isPublished = !filterPublished.ShouldFilter(content);
             
             return anonymousHasAccess && hasTemplate && isPublished;
+        }
+        
+        public static bool ShouldIndexBlock(this IContent content)
+        {
+            var filterPublished = new FilterPublished();
+            var anonymousHasAccess = FilterAccess.QueryDistinctAccessEdit(content, AccessLevel.Read, PrincipalInfo.AnonymousPrincipal);
+            var isPublished = !filterPublished.ShouldFilter(content);
+            
+            return anonymousHasAccess && isPublished;
         }
     }
 }

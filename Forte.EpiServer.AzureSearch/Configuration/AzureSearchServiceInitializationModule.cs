@@ -3,6 +3,7 @@ using EPiServer.Core;
 using EPiServer.Framework.Initialization;
 using EPiServer.Logging;
 using EPiServer.ServiceLocation;
+using Forte.EpiServer.AzureSearch.ContentExtractor;
 using Forte.EpiServer.AzureSearch.Events;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Plugin;
@@ -22,9 +23,12 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             
             context.InitComplete += (sender, args) =>
             {
+                contentEvents.PublishingContent += searchEventHandler.OnPublishingContent;
                 contentEvents.PublishedContent += searchEventHandler.OnPublishedContent;
+                contentEvents.MovingContent += searchEventHandler.OnMovingContent;
                 contentEvents.MovedContent += searchEventHandler.OnMovedContent;
                 contentEvents.SavingContent += searchEventHandler.OnSavingContent;
+                contentEvents.DeletingContentLanguage += searchEventHandler.OnDeletingContentLanguage;
 
                 Task.Run(() => azureSearchService.CreateOrUpdateIndexAsync<TDocument>(indexSpecificationProvider.GetIndexSpecification()))
                     .ContinueWith(t =>
@@ -58,7 +62,6 @@ namespace Forte.EpiServer.AzureSearch.Configuration
                 c.For<IContentIndexer>().Use<ContentIndexer<TDocument>>();
                 c.For<SearchEventHandler<TDocument>>().Singleton().Use<SearchEventHandler<TDocument>>();
                 c.For<IContentDocumentBuilder<TDocument>>().Use<TDocumentBuilder>();
-                c.For<IContentExtractor>().Use<SearchableContentExtractor>();
                 c.For<IIndexSpecificationProvider>().Use<NullIndexSpecificationProvider>();
                 c.For<IIndexDefinitionHandler>().Use<IndexDefinitionHandler<TDocument>>();
                 c.For<IIndexGarbageCollector>().Use<IndexGarbageCollector<TDocument>>();

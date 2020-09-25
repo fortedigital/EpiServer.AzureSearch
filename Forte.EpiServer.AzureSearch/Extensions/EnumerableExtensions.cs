@@ -28,5 +28,17 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                 yield return nextbatch;
             }
         }
+        
+        public static IEnumerable<TSource> DistinctBy<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> keyFactory)
+        {
+            var keys = new HashSet<TKey>();
+            foreach (var item in source)
+            {
+                if (keys.Add(keyFactory(item)))
+                {
+                    yield return item;
+                }
+            }
+        }
     }
 }

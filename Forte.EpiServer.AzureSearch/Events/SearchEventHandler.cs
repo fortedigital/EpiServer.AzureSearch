@@ -1,103 +1,191 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EPiServer;
+using EPiServer.Cms.Shell;
 using EPiServer.Core;
-using Forte.EpiServer.AzureSearch.Extensions;
+using EPiServer.Web.Routing;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Events
 {
     public class SearchEventHandler<T> where T : ContentDocument
     {
+        private const string IsContentMovedFromWasteBasketKey = "IsContentMovedFromWasteBasket";
         private readonly IAzureSearchService _azureSearchService;
-        private readonly IContentDocumentBuilder<T> _contentDocumentBuilder;
         private readonly IContentLoader _contentLoader;
+        private readonly PageDocumentsProvider<T> _pageDocumentsProvider;
+        private readonly BlockDocumentsProvider<T> _blockDocumentsProvider;
+        private readonly IUrlResolver _urlResolver;
 
-        public SearchEventHandler(IAzureSearchService azureSearchService, IContentDocumentBuilder<T> contentDocumentBuilder, IContentLoader contentLoader)
+        public SearchEventHandler(IAzureSearchService azureSearchService, IContentLoader contentLoader,
+            PageDocumentsProvider<T> pageDocumentsProvider, BlockDocumentsProvider<T> blockDocumentsProvider,
+            IUrlResolver urlResolver)
         {
             _azureSearchService = azureSearchService;
-            _contentDocumentBuilder = contentDocumentBuilder;
             _contentLoader = contentLoader;
+            _pageDocumentsProvider = pageDocumentsProvider;
+            _blockDocumentsProvider = blockDocumentsProvider;
+            _urlResolver = urlResolver;
         }
 
-        public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
+        //Event handler for keeping 'OldUrl' in contentEventArgs
+        public void OnPublishingContent(object sender, ContentEventArgs contentEventArgs)
         {
-            if (!contentEventArgs.Content.ShouldIndex())
+            if (contentEventArgs.Content is PageData == false)
             {
                 return;
             }
-            
-            var contentInAllLanguageVersions = _contentLoader.GetAllLanguageVersions(contentEventArgs.Content.ContentLink);
-            var documents = contentInAllLanguageVersions.Select(c => _contentDocumentBuilder.Build(c));
-            
-            Task.Run(() => _azureSearchService.IndexAsync(documents));
-        }
+            var oldUrl = _urlResolver.GetUrl(new ContentReference(contentEventArgs.Content.ContentLink.ID));
 
-        public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
-        {
-            if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
+            if (string.IsNullOrEmpty(oldUrl) == false)
             {
-                DeleteTreeFromIndex(contentEventArgs.Content);
-            }
-            else
-            {
-                UpdateTreeInIndex(contentEventArgs.Content);
+                contentEventArgs.Items.Add(PageDocumentsProvider<T>.OldUrlKey, oldUrl);
             }
         }
         
+        //Event handler for publishing page and block content
+        public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
+        {
+            var content = contentEventArgs.Content;
+
+            switch (content)
+            {
+                case PageData _:
+                    UpdateIndexAfterPagePublish(contentEventArgs, content);
+                    break;
+
+                case BlockData _:
+                    UpdateBlockParentPagesInIndex(content);
+                    break;
+            }
+        }
+
+        //Event handler for checking if content is moved back from the WasteBasket
+        public void OnMovingContent(object sender, ContentEventArgs contentEventArgs)
+        {
+            var content = contentEventArgs.Content;
+            if (content.IsDeleted)
+            {
+                contentEventArgs.Items.Add(IsContentMovedFromWasteBasketKey, true);
+            }
+        }
+
+        //Event handler for moving pages and moving pages and blocks to WasteBasket
+        public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
+        {
+            var content = contentEventArgs.Content;
+            switch (content)
+            {
+                case PageData _:
+                    if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
+                    {
+                        DeletePageTreeFromIndex(content);
+                    }
+                    else
+                    {
+                        UpdatePageTreeInIndex(content);
+                    }
+                    break;
+                case BlockData _:
+                    if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
+                    {
+                        UpdateBlockParentPagesInIndex(content);
+                    }
+
+                    var isContentMovedFromWasteBasket = contentEventArgs.Items[IsContentMovedFromWasteBasketKey];
+                    if (isContentMovedFromWasteBasket != null && (bool)isContentMovedFromWasteBasket)
+                    {
+                        UpdateBlockParentPagesInIndex(content);
+                    }
+                    break;
+            }
+        }
+        
+        //Event handler for deleting index for expired pages and updating index of pages that use expired blocks 
         public void OnSavingContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
-            var pagePreviousVersion = GetPagePreviousVersion(content.ContentLink);
-            if (pagePreviousVersion != null && IsContentMarkedAsExpired(contentEventArgs, pagePreviousVersion))
+            var contentPreviousVersion = GetContentPreviousVersion(content.ContentLink);
+            if (contentPreviousVersion != null && IsContentMarkedAsExpired(contentEventArgs, contentPreviousVersion))
             {
-                DeleteTreeFromIndex(content);
+                switch (content)
+                {
+                    case PageData _:
+                        DeletePageFromIndex(content);
+                        break;
+                    case BlockData _:
+                        UpdateBlockParentPagesInIndex(content);
+                        break;
+                }
             }
         }
-
-        private void DeleteTreeFromIndex(IContent root)
+        
+        //Event handler for deleting page index(for pages) and updating page parents(for blocks) during deleting of a specific language content version
+        public void OnDeletingContentLanguage(object sender, ContentEventArgs contentEventArgs)
         {
-            var documentsToIndex = GetDocumentsToReindex(root, true);
-            Task.Run(() => _azureSearchService.DeleteAsync(documentsToIndex.ToArray()));
+            var content = contentEventArgs.Content;
+            switch (content)
+            {
+                case PageData _:
+                    DeletePageFromIndex(content);
+                    break;
+                case BlockData _:
+                    UpdateBlockParentPagesInIndex(content);
+                    break;
+            }
         }
-
-        private void UpdateTreeInIndex(IContent root)
+        
+        private void UpdateIndexAfterPagePublish(ContentEventArgs contentEventArgs, IContent content)
         {
-            var documentsToIndex = GetDocumentsToReindex(root);
+            var documentsToIndex = _pageDocumentsProvider.GetDocuments(content, contentEventArgs);
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
+        }
+        
+        private void UpdateBlockParentPagesInIndex(IContent content)
+        {
+            var documentsToIndex = _blockDocumentsProvider.GetDocuments(content);
+            
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
+        }
+        
+        private void DeletePageTreeFromIndex(IContent root)
+        {
+            var documentsToRemoveFromIndex = _pageDocumentsProvider.GetPageTreeAllLanguagesDocuments(root, true);
+            Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex.ToArray()));
+        }
+        
+        private void UpdatePageTreeInIndex(IContent root)
+        {
+            var documentsToIndex = _pageDocumentsProvider.GetPageTreeDocuments(root, root.IsMasterLanguageBranch());
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
         }
 
-        private IEnumerable<T> GetDocumentsToReindex(IContent root, bool includeDeleted = false)
+        private void DeletePageFromIndex(IContent content)
         {
-            var listResult = new List<T>();
-            listResult.AddRange(_contentLoader.GetAllLanguageVersions(root.ContentLink).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
-            
-            var descendants = _contentLoader.GetDescendents(root.ContentLink);
-            foreach (var descendant in descendants)
-            {
-                listResult.AddRange( _contentLoader.GetAllLanguageVersions(descendant).Where(c => (includeDeleted && c.IsDeleted) || c.ShouldIndex()).Select(_contentDocumentBuilder.Build));
-            }
-            
-            return listResult;
-        }
-        
-        private static bool IsContentMarkedAsExpired(ContentEventArgs contentEventArgs, IVersionable pagePreviousVersion)
-        {
-            return pagePreviousVersion != null && contentEventArgs.Content is PageData page &&
-                   pagePreviousVersion.StopPublish != page.StopPublish && page.StopPublish <= DateTime.Now;
+            var documentToRemoveFromIndex = _pageDocumentsProvider.GetPageVersionContentDocument(content.ContentLink);
+            Task.Run(() => _azureSearchService.DeleteAsync(documentToRemoveFromIndex));
         }
 
-        private PageData GetPagePreviousVersion(ContentReference reference)
+        private static bool IsContentMarkedAsExpired(ContentEventArgs contentEventArgs, IContent contentPreviousVersion)
+        {
+            var contentPreviousVersionInfo = (IVersionable) contentPreviousVersion;
+            
+            return contentPreviousVersion != null &&
+                   contentEventArgs.Content is IVersionable content &&
+                   contentPreviousVersionInfo.StopPublish != content.StopPublish &&
+                   content.StopPublish <= DateTime.Now;
+        }
+
+        private IContent GetContentPreviousVersion(ContentReference reference)
         {
             if (ContentReference.IsNullOrEmpty(reference))
             {
                 return null;
             }
             
-            var previousPageReference = reference.ToReferenceWithoutVersion();
-            return _contentLoader.TryGet<PageData>(previousPageReference, out var pageData) ? pageData : null;
+            var previousVersionReference = reference.ToReferenceWithoutVersion();
+            return _contentLoader.TryGet<IContent>(previousVersionReference, out var content) ? content : null;
         }
     }
 }
