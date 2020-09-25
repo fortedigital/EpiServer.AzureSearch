@@ -141,41 +141,47 @@ It is meant to store all content which is supposed to be searchable - article bo
 
 By default, if you don't do anything, no content will be extracted there. There are two options you can do it:
 
-### SearchableAttribute
+### IndexableAttribute
 
 You can mark any field with this attribute and its content will be added as a content to `ContentBody` field.
 
 ```c#
 public class ArticlePage : PageData
 {
-    [EPiServer.DataAnnotations.Searchable]
+    [Forte.EpiServer.AzureSearch.Model.Indexable]
     public virtual XhtmlString Body { get; set; }
 
-    [EPiServer.DataAnnotations.Searchable]
+    [Forte.EpiServer.AzureSearch.Model.Indexable]
     public virtual string Summary { get; set; }
 }
 ```
 
-This attribute works fine for fields of type `XhtmlString` (plain text, without html entities will be indexed). On all other field types `ToString()` will be called. If you want to do something more sophisticated this is no good: `IContentExtractor` for the help!
+This attribute does further extraction for properties of types `XhtmlString`, 'ContentArea', any block type (derivative of BlockData) and 'ContentReference'(as long as it's referencing block and not page). On all other field types, `ToString()` will be called. If you want to do something more sophisticated, like order content extraction texts results, use `IContentExtractor` instead.
 
 ### IContentExtractor
 
-You can create class which will implement `IContentExtractor` and decide what and when should end up in `ContentBody`:
+You can create class which will implement `IContentExtractor` and decide what and when should end up in `ContentBody`. Inject and use 'Forte.EpiServer.AzureSearch.ContentExtractor.XhtmlStringExtractor' for extracting plain text from Xhtml based properties types (XHtmlString and ContentArea):
 
 ```c#
-public class ArticleContentExtractor : IContentExtractor
+public class ArticlePageContentExtractor : IContentExtractor
 {
-    public bool CanExtract(IContent content)
+    private readonly XhtmlStringExtractor _xhtmlStringExtractor;
+    public ArticlePageContentExtractor(XhtmlStringExtractor xhtmlStringExtractor)
+    {
+        _xhtmlStringExtractor = xhtmlStringExtractor;
+    }
+
+    public bool CanExtract(IContentData content)
     {
         return content is ArticlePageBase;
     }
 
-    public ContentExtractionResult Extract(IContent content)
+    public ContentExtractionResult Extract(IContent content, ContentExtractorController extractor)
     {
         var article = (ArticlePageBase) content;
 
-        var articleBody = article.Body?.GetPlainTextContent();
-        var articleIntro = article.Intro?.GetPlainTextContent();
+        var articleBody = _xhtmlStringExtractor.GetPlainTextContent(article.Body, extractor);
+        var articleIntro = _xhtmlStringExtractor.GetPlainTextContent(article.Intro, extractor);
         var articleHeading = article.Heading;
         
         return new ContentExtractionResult(new[] {articleBody, articleIntro, articleHeading}, null);
@@ -197,7 +203,12 @@ public class ForteSearchInitializationModule : AzureSearchServiceInitializationM
          
         context.StructureMap().Configure(c =>
         {
-            c.For<IContentExtractor>().Use<ArticleContentExtractor>();
+            c.Scan(a =>
+            {
+                a.TheCallingAssembly();
+                a.AssemblyContainingType<IndexableContentExtractor>();
+                a.AddAllTypesOf<IContentExtractor>();
+            });
         });
 
     }
