@@ -32,5 +32,11 @@ namespace Forte.EpiServer.AzureSearch.Model
         
         [IsFilterable]
         public DateTimeOffset? StopPublishUtc { get; set; }
+        
+        [IsFilterable]
+        public string[] AccessRoles { get; set; }
+        
+        [IsFilterable]
+        public string[] AccessUsers { get; set; }
     }
 }

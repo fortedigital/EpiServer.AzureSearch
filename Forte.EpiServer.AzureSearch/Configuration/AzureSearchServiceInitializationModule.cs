@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using EPiServer.Core;
 using EPiServer.Framework.Initialization;
 using EPiServer.Logging;
+using EPiServer.Security;
 using EPiServer.ServiceLocation;
 using Forte.EpiServer.AzureSearch.ContentExtractor;
 using Forte.EpiServer.AzureSearch.Events;
@@ -20,7 +21,8 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             var azureSearchService = context.Locate.Advanced.GetInstance<IAzureSearchService>();
             var searchEventHandler = context.Locate.Advanced.GetInstance<SearchEventHandler<TDocument>>();
             var indexSpecificationProvider = context.Locate.Advanced.GetInstance<IIndexSpecificationProvider>();
-            
+            var contentSecurityRepository = context.Locate.ContentSecurityRepository();
+
             context.InitComplete += (sender, args) =>
             {
                 contentEvents.PublishingContent += searchEventHandler.OnPublishingContent;
@@ -29,6 +31,7 @@ namespace Forte.EpiServer.AzureSearch.Configuration
                 contentEvents.MovedContent += searchEventHandler.OnMovedContent;
                 contentEvents.SavingContent += searchEventHandler.OnSavingContent;
                 contentEvents.DeletingContentLanguage += searchEventHandler.OnDeletingContentLanguage;
+                contentSecurityRepository.ContentSecuritySaved += searchEventHandler.OnContentSecuritySaved;
 
                 Task.Run(() => azureSearchService.CreateOrUpdateIndexAsync<TDocument>(indexSpecificationProvider.GetIndexSpecification()))
                     .ContinueWith(t =>

@@ -3,6 +3,7 @@ using System.Linq;
 using EPiServer;
 using EPiServer.Core;
 using EPiServer.DataAbstraction;
+using EPiServer.Security;
 using EPiServer.Web.Routing;
 using Forte.EpiServer.AzureSearch.ContentExtractor;
 using Forte.EpiServer.AzureSearch.Extensions;
@@ -66,6 +67,9 @@ namespace Forte.EpiServer.AzureSearch.Model
             {
                 document.ContentTypeName = pageData.PageTypeName;
                 document.StopPublishUtc = pageData.StopPublish.HasValue ? new DateTimeOffset(pageData.StopPublish.Value) : (DateTimeOffset?) null;
+
+                document.AccessRoles = GetReadAccessEntriesNames(pageData, SecurityEntityType.Role);
+                document.AccessUsers = GetReadAccessEntriesNames(pageData, SecurityEntityType.User);
             }
             else
             {
@@ -80,6 +84,14 @@ namespace Forte.EpiServer.AzureSearch.Model
             document.ContentBody = Extractor.ExtractPage(content).ToArray();
 
             return document;
+        }
+
+        private static string[] GetReadAccessEntriesNames(IContent pageData, SecurityEntityType securityEntityType)
+        {
+            return pageData.ToRawACEArray()
+                .Where(ace => ace.Access.HasFlag(AccessLevel.Read) && ace.EntityType == securityEntityType)
+                .Select(ace => ace.Name)
+                .ToArray();
         }
 
         public virtual T Build(PageData pageData)
