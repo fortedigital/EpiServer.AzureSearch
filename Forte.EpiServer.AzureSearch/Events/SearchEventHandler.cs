@@ -151,7 +151,7 @@ namespace Forte.EpiServer.AzureSearch.Events
         
         private void UpdateIndexAfterPageAccessRightsChange(IContent content)
         {
-            var documentsToIndex = _pageDocumentsProvider.GetDocumentsForAccessRightsChange(content);
+            var documentsToIndex = _pageDocumentsProvider.GetPageTreeDocuments(content, true);
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
         

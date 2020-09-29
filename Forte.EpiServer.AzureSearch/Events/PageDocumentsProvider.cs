@@ -5,7 +5,6 @@ using System.Linq;
 using EPiServer;
 using EPiServer.Cms.Shell;
 using EPiServer.Core;
-using EPiServer.DataAbstraction;
 using EPiServer.Web.Routing;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
@@ -38,13 +37,6 @@ namespace Forte.EpiServer.AzureSearch.Events
             var documents = isUrlChanged
                 ? GetPageTreeDocuments(page, isMasterLanguage)
                 : GetPageDocuments(page, isMasterLanguage);
-
-            return documents.ToList();
-        }
-        
-        public IReadOnlyCollection<T> GetDocumentsForAccessRightsChange(IContent page)
-        {
-            var documents = GetPageTreeDocuments(page, true);
 
             return documents.ToList();
         }
