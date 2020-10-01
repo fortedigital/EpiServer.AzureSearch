@@ -65,7 +65,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             return results;
         }
 
-        private IEnumerable<ContentExtractionResult> ExtractBlockInternal(IContentData content, ContentExtractorController extractor)
+        private IEnumerable<ContentExtractionResult> ExtractBlockInternal(IContentData content, IContentExtractorController extractor)
         {
             var result = new List<ContentExtractionResult>();
             
@@ -82,7 +82,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
         }
 
         private static List<ContentExtractionResult> GetExtractionResults(IEnumerable<IContentExtractor> contentExtractors, IContentData content,
-            ContentExtractorController extractor)
+            IContentExtractorController extractor)
         {
             return contentExtractors
                 .Where(e => e.CanExtract(content))

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EPiServer;
 using EPiServer.Cms.Shell;
 using EPiServer.Core;
+using EPiServer.DataAbstraction;
 using EPiServer.Web.Routing;
 using Forte.EpiServer.AzureSearch.Model;
 
@@ -52,7 +53,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             switch (content)
             {
                 case PageData _:
-                    UpdateIndexAfterPagePublish(contentEventArgs, content);
+                    UpdateIndexAfterPagePublish(content, contentEventArgs);
                     break;
 
                 case BlockData _:
@@ -136,7 +137,25 @@ namespace Forte.EpiServer.AzureSearch.Events
             }
         }
         
-        private void UpdateIndexAfterPagePublish(ContentEventArgs contentEventArgs, IContent content)
+        //Event handler for page access rights change
+        public void OnContentSecuritySaved(object sender, ContentSecurityEventArg contentSecurityEventArgs)
+        {
+            var contentLink = contentSecurityEventArgs.ContentLink;
+            var content = _contentLoader.Get<IContent>(contentLink);
+
+            if (content is PageData)
+            {
+                UpdateIndexAfterPageAccessRightsChange(content);
+            }
+        }
+        
+        private void UpdateIndexAfterPageAccessRightsChange(IContent content)
+        {
+            var documentsToIndex = _pageDocumentsProvider.GetPageTreeDocuments(content, true);
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
+        }
+        
+        private void UpdateIndexAfterPagePublish(IContent content, ContentEventArgs contentEventArgs)
         {
             var documentsToIndex = _pageDocumentsProvider.GetDocuments(content, contentEventArgs);
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
