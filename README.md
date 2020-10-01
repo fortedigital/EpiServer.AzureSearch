@@ -206,7 +206,6 @@ public class ForteSearchInitializationModule : AzureSearchServiceInitializationM
             c.Scan(a =>
             {
                 a.TheCallingAssembly();
-                a.AssemblyContainingType<IndexableContentExtractor>();
                 a.AddAllTypesOf<IContentExtractor>();
             });
         });
