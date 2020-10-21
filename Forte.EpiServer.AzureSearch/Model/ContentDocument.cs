@@ -9,6 +9,7 @@ namespace Forte.EpiServer.AzureSearch.Model
         public string[] ContentBody { get; set; }
 		
         public int ContentId { get; set; }
+        public string ContentComplexReference { get; set; }
         public string ContentImageUrl { get; set; }
         public int ContentImageReferenceId { get; set; }
 		
