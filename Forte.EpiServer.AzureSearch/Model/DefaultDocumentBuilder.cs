@@ -45,6 +45,7 @@ namespace Forte.EpiServer.AzureSearch.Model
             {
                 Id = content.GetDocumentUniqueId(),
                 ContentId = content.ContentLink.ID,
+                ContentComplexReference = content.ContentLink.ToString(),
                 ContentName = content.Name,
             };
 

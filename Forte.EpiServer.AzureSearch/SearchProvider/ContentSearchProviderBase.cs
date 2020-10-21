@@ -38,14 +38,14 @@ namespace Forte.EpiServer.AzureSearch.SearchProvider
                 previewText = result.Highlights.First().Value.First();
             }
 
-            var editModeUrl = PageEditing.GetEditUrlForLanguage(new ContentReference(result.Document.ContentId), result.Document.ContentLanguage); 
+            var editModeUrl = PageEditing.GetEditUrlForLanguage(new ContentReference(result.Document.ContentComplexReference), result.Document.ContentLanguage); 
             
             return new SearchResult(editModeUrl, result.Document.ContentName, previewText)
             {
                 Metadata =
                 {
                     new KeyValuePair<string, string>("languageBranch", result.Document.ContentLanguage),
-                    new KeyValuePair<string, string>("id", result.Document.ContentId.ToString())
+                    new KeyValuePair<string, string>("id", result.Document.ContentComplexReference)
                 }
             };
         }
