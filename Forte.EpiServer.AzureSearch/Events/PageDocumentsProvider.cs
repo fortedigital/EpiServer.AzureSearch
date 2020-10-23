@@ -28,7 +28,7 @@ namespace Forte.EpiServer.AzureSearch.Events
 
         public IReadOnlyCollection<T> GetDocuments(IContent page, ContentEventArgs contentEventArgs)
         {
-            var oldUrl = contentEventArgs.Items[OldUrlKey].ToString();
+            var oldUrl = contentEventArgs.Items[OldUrlKey]?.ToString();
             var newUrl = _urlResolver.GetUrl(contentEventArgs.ContentLink);
             
             var isUrlChanged = oldUrl != newUrl;
