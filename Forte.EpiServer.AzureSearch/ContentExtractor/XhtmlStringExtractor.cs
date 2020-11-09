@@ -25,6 +25,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 return string.Empty;
             }
             var texts = new List<string>();
+            var staticFragments = new List<string>();
 
             var xhtmlFragments = xhtmlString
                 .Fragments
@@ -38,6 +39,12 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         continue;
                     case ContentFragment contentFragment:
                     {
+                        if (staticFragments.Any())
+                        {
+                            texts.Add(RemoveScripts(string.Join("", staticFragments)));
+                            staticFragments.Clear();
+                        }
+                        
                         var content = _contentLoader.Get<IContent>(contentFragment.ContentLink);
                         
                         texts.Add(extractor.ExtractBlock(content));
@@ -45,11 +52,14 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                     }
                     case StaticFragment staticFragment:
                         var html = staticFragment.InternalFormat;
-                        var htmlWithoutScripts = RemoveScripts(html);
-
-                        texts.Add(htmlWithoutScripts);
+                        staticFragments.Add(html);
                         break;
                 }
+            }
+            
+            if (staticFragments.Any())
+            {
+                texts.Add(RemoveScripts(string.Join("", staticFragments)));
             }
 
             var joinedText = string.Join(ContentExtractorController.BlockExtractedTextFragmentsSeparator,
