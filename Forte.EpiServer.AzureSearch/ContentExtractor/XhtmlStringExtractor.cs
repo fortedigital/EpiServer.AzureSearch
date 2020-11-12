@@ -41,7 +41,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                     {
                         if (staticFragments.Any())
                         {
-                            texts.Add(RemoveScripts(string.Join("", staticFragments)));
+                            texts.Add(RemoveScripts(staticFragments));
                             staticFragments.Clear();
                         }
                         
@@ -59,7 +59,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             
             if (staticFragments.Any())
             {
-                texts.Add(RemoveScripts(string.Join("", staticFragments)));
+                texts.Add(RemoveScripts(staticFragments));
             }
 
             var joinedText = string.Join(ContentExtractorController.BlockExtractedTextFragmentsSeparator,
@@ -70,9 +70,14 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
         private static string StripHtml(string html)
         {
             const string moreTextMarker = "...";
-            return TextIndexer.StripHtml(html, int.MaxValue, int.MaxValue, moreTextMarker);
+            return TextIndexer.StripHtml(html, int.MaxValue, int.MaxValue, moreTextMarker).Trim();
         }
 
+        private static string RemoveScripts(IEnumerable<string> strings)
+        {
+            return RemoveScripts(string.Join("", strings));
+        }
+        
         private static string RemoveScripts(string htmlString)
         {
             var parser = new AngleSharp.Html.Parser.HtmlParser();

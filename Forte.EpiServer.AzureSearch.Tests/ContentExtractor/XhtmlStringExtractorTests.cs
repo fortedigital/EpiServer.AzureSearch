@@ -26,10 +26,9 @@ namespace Forte.EpiServer.AzureSearch.Tests.ContentExtractor
         [TestCaseSource(nameof(PlainTextContentSource))]
         public void GetPlainTextContentShouldReturnValidText(XhtmlString testString, string expectedString)
         {
-            var strippedText = _xhtmlStringExtractor.GetPlainTextContent(testString, _contentExtractorController).Trim();
+            var strippedText = _xhtmlStringExtractor.GetPlainTextContent(testString, _contentExtractorController);
             
             Assert.That(strippedText, Is.EqualTo(expectedString));
-            
         }
         
         private static IEnumerable<TestCaseData> PlainTextContentSource()
