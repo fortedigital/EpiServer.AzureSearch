@@ -188,10 +188,12 @@ namespace Forte.EpiServer.AzureSearch.Events
 
         private static bool IsContentMarkedAsExpired(ContentEventArgs contentEventArgs, IContent contentPreviousVersion)
         {
-            var contentPreviousVersionInfo = (IVersionable) contentPreviousVersion;
+            if (!(contentPreviousVersion is IVersionable contentPreviousVersionInfo))
+            {
+                return false;
+            }
             
-            return contentPreviousVersion != null &&
-                   contentEventArgs.Content is IVersionable content &&
+            return contentEventArgs.Content is IVersionable content &&
                    contentPreviousVersionInfo.StopPublish != content.StopPublish &&
                    content.StopPublish <= DateTime.Now;
         }
