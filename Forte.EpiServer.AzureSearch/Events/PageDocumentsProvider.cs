@@ -118,9 +118,9 @@ namespace Forte.EpiServer.AzureSearch.Events
 
         private T GetPageLanguageBranchContentDocument(ContentReference contentLink, CultureInfo language)
         {
-            var content = _contentLoader.Get<IContent>(new ContentReference(contentLink.ID), language);
+            var content = _contentLoader.Get<IContent>(contentLink.ToReferenceWithoutVersion(), language);
             
-            if (content.ShouldIndexPage() == false)
+            if (content?.ShouldIndexPage() != true)
             {
                 return null;
             }
