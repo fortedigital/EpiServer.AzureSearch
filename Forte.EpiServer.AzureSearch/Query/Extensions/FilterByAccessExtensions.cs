@@ -13,23 +13,22 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
         /// <returns></returns>
         public static AzureSearchQueryBuilder FilterOnReadAccess(this AzureSearchQueryBuilder queryBuilder)
         {
-            var roles = PrincipalInfo.Current?.RoleList ?? Enumerable.Empty<string>();
-            var user = PrincipalInfo.Current?.Name ?? string.Empty;
+            var currentPrincipalRoles = PrincipalInfo.Current?.RoleList ?? Enumerable.Empty<string>();
+            var currentUserName = PrincipalInfo.Current?.Name ?? string.Empty;
             
-            var userAccessFilter = new AzureSearchQueryFilter(nameof(ContentDocument.AccessUsers), ComparisonExpression.Eq, user)
+            var userAccessFilter = new AzureSearchQueryFilter(nameof(ContentDocument.AccessUsers), ComparisonExpression.Eq, currentUserName)
             {
                 GroupingExpression = GroupingExpression.Any
             };
-            
-            var accessFilters = roles
+
+            var rolesAccessFilters = currentPrincipalRoles
                 .Select(roleName => new AzureSearchQueryFilter(nameof(ContentDocument.AccessRoles),
                     ComparisonExpression.Eq, roleName)
                 {
                     GroupingExpression = GroupingExpression.Any
-                })
-                .Append(userAccessFilter);
+                });
 
-            return queryBuilder.Filter(new FilterComposite(Operator.Or, accessFilters));
+            return queryBuilder.Filter(new FilterComposite(Operator.Or, rolesAccessFilters.Append(userAccessFilter)));
         }
     }
 }
