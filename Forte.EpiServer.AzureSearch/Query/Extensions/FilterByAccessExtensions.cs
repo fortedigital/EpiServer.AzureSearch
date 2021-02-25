@@ -16,20 +16,20 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
             var roles = PrincipalInfo.Current?.RoleList ?? Enumerable.Empty<string>();
             var user = PrincipalInfo.Current?.Name ?? string.Empty;
             
-            var accessUserFilter = new AzureSearchQueryFilter(nameof(ContentDocument.AccessUsers), ComparisonExpression.Eq, user)
+            var userAccessFilter = new AzureSearchQueryFilter(nameof(ContentDocument.AccessUsers), ComparisonExpression.Eq, user)
             {
                 GroupingExpression = GroupingExpression.Any
             };
             
-            var accessRoleQueries = roles
+            var accessFilters = roles
                 .Select(roleName => new AzureSearchQueryFilter(nameof(ContentDocument.AccessRoles),
                     ComparisonExpression.Eq, roleName)
                 {
                     GroupingExpression = GroupingExpression.Any
                 })
-                .Append(accessUserFilter);
+                .Append(userAccessFilter);
 
-            return queryBuilder.Filter(new FilterComposite(Operator.Or, accessRoleQueries));
+            return queryBuilder.Filter(new FilterComposite(Operator.Or, accessFilters));
         }
     }
 }
