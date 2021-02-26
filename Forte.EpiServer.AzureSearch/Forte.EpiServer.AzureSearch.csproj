@@ -296,6 +296,7 @@
     <Compile Include="Query\AzureSearchQueryFilter.cs" />
     <Compile Include="Query\ComparisonExpression.cs" />
     <Compile Include="Query\DateTimeOffsetPropertyValue.cs" />
+    <Compile Include="Query\Extensions\FilterByAccessExtensions.cs" />
     <Compile Include="Query\FilterComposite.cs" />
     <Compile Include="Query\GroupingExpression.cs" />
     <Compile Include="Query\IFilter.cs" />
