@@ -12,6 +12,8 @@ namespace Forte.EpiServer.AzureSearch.Plugin
     [ScheduledPlugIn(GUID = "922CADD1-EFA8-43C1-AE15-2FC1D88F1CC9", DisplayName = "[Search] Index content")]
     public class ContentIndexingScheduledJob : ScheduledJobBase
     {
+        private const string NewLine = "<br/>";
+
         private readonly IContentIndexer _contentIndexer;
         private readonly IIndexDefinitionHandler _indexDefinitionHandler;
         private readonly IIndexGarbageCollector _indexGarbageCollector;
@@ -34,10 +36,10 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             OnStatusChanged("Ensuring valid index definition");
             
             var (updateOrRecreateResult, recreationReason) = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
-            var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult}\n";
+            var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult}{NewLine}";
             if (updateOrRecreateResult == UpdateOrRecreateResult.Recreated)
             {
-                message += $"Recreation reason: {recreationReason}\n";
+                message += $"Recreation reason: {recreationReason}{NewLine}";
             }
             
             var indexContentRequest = new IndexContentRequest
@@ -52,17 +54,26 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             OnStatusChanged("Indexing content start...");
             _contentIndexer.Index(ContentReference.RootPage, indexContentRequest).GetAwaiter().GetResult();
 
+            var exceptionsThresholdReached = indexContentRequest.Statistics.Exceptions.Count >= indexContentRequest.ExceptionThreshold;
+
+            if (exceptionsThresholdReached)
+            {
+                message += $"Exceptions threshold reached. " +
+                           $"Exceptions: {string.Join(NewLine + NewLine, indexContentRequest.Statistics.Exceptions.Select(e => e.ToString()))}{NewLine}{NewLine}" +
+                           $"Failed for ids: {string.Join(",", indexContentRequest.Statistics.FailedIds.Select(c => c.ID))}";
+
+                throw new AggregateException(message);
+            }
+
             if (!_cancellationToken.IsCancellationRequested)
             {
                 OnStatusChanged("Clearing outdated items...");
-                _indexGarbageCollector.RemoveOutdatedContent(jobStartTime).GetAwaiter().GetResult();                
+                _indexGarbageCollector.RemoveOutdatedContent(jobStartTime).GetAwaiter().GetResult();
             }
-            
+
             stopWatch.Stop();
-            
-            message += indexContentRequest.Statistics.Exceptions.Count >= indexContentRequest.ExceptionThreshold
-                          ? $"Exceptions threshold reached. Exceptions: {string.Join("; ", indexContentRequest.Statistics.Exceptions.Select(e => e.ToString()))}, Failed for ids: {string.Join(",", indexContentRequest.Statistics.FailedIds.Select(c => c.ID))}"
-                          : $"Content has been indexed. Visited content count: {indexContentRequest.VisitedContent.Count}, Time taken: {stopWatch.Elapsed}";
+
+            message += $"Content has been indexed. Visited content count: {indexContentRequest.VisitedContent.Count}, Time taken: {stopWatch.Elapsed}";
 
             return message;
         }
