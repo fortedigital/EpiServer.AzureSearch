@@ -6,6 +6,7 @@ using System.Threading;
 using EPiServer.Core;
 using EPiServer.PlugIn;
 using EPiServer.Scheduler;
+using Forte.EpiServer.AzureSearch.Exceptions;
 
 namespace Forte.EpiServer.AzureSearch.Plugin
 {
@@ -18,7 +19,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
         private readonly IIndexDefinitionHandler _indexDefinitionHandler;
         private readonly IIndexGarbageCollector _indexGarbageCollector;
         private readonly CancellationTokenSource _cancellationToken;
-        
+
         public ContentIndexingScheduledJob(IContentIndexer contentIndexer, IIndexDefinitionHandler indexDefinitionHandler, IIndexGarbageCollector indexGarbageCollector)
         {
             _contentIndexer = contentIndexer;
@@ -32,16 +33,16 @@ namespace Forte.EpiServer.AzureSearch.Plugin
         {
             var stopWatch = Stopwatch.StartNew();
             var jobStartTime = DateTimeOffset.UtcNow;
-            
+
             OnStatusChanged("Ensuring valid index definition");
-            
+
             var (updateOrRecreateResult, recreationReason) = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
             var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult}{NewLine}";
             if (updateOrRecreateResult == UpdateOrRecreateResult.Recreated)
             {
                 message += $"Recreation reason: {recreationReason}{NewLine}";
             }
-            
+
             var indexContentRequest = new IndexContentRequest
             {
                 CancellationToken = _cancellationToken,
@@ -50,7 +51,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
                 VisitedContent = new HashSet<ContentReference>(),
                 Statistics = new IndexStatistics(),
             };
-            
+
             OnStatusChanged("Indexing content start...");
             _contentIndexer.Index(ContentReference.RootPage, indexContentRequest).GetAwaiter().GetResult();
 
@@ -58,17 +59,19 @@ namespace Forte.EpiServer.AzureSearch.Plugin
 
             if (exceptionsThresholdReached)
             {
-                message += $"Exceptions threshold reached. " +
+                message += "Exceptions threshold reached. " +
                            $"Exceptions: {string.Join(NewLine + NewLine, indexContentRequest.Statistics.Exceptions.Select(e => e.ToString()))}{NewLine}{NewLine}" +
                            $"Failed for ids: {string.Join(",", indexContentRequest.Statistics.FailedIds.Select(c => c.ID))}";
 
-                throw new AggregateException(message);
+                throw new ScheduledJobFailedException(message);
             }
 
             if (!_cancellationToken.IsCancellationRequested)
             {
                 OnStatusChanged("Clearing outdated items...");
-                _indexGarbageCollector.RemoveOutdatedContent(jobStartTime).GetAwaiter().GetResult();
+
+                var contentIdsThatCanStayOutdated = indexContentRequest.Statistics.FailedIds.Select(c => c.ID).ToList();
+                _indexGarbageCollector.RemoveOutdatedContent(jobStartTime, contentIdsThatCanStayOutdated).GetAwaiter().GetResult();
             }
 
             stopWatch.Stop();

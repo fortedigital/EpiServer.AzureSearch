@@ -266,6 +266,7 @@
     <Compile Include="Events\BlockDocumentsProvider.cs" />
     <Compile Include="Events\PageDocumentsProvider.cs" />
     <Compile Include="Events\SearchEventHandler.cs" />
+    <Compile Include="Exceptions\ScheduledJobFailedException.cs" />
     <Compile Include="Extensions\AzureSearchServiceExtensions.cs" />
     <Compile Include="Extensions\ContentExtensions.cs" />
     <Compile Include="Extensions\ContentLoaderExtensions.cs" />
@@ -291,6 +292,7 @@
     <Compile Include="Plugin\IndexDefinitionHandler.cs" />
     <Compile Include="Plugin\IndexStatistics.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Query\AzureSearchFilterSearchIn.cs" />
     <Compile Include="Query\AzureSearchQuery.cs" />
     <Compile Include="Query\AzureSearchQueryBuilder.cs" />
     <Compile Include="Query\AzureSearchQueryFilter.cs" />
@@ -298,6 +300,7 @@
     <Compile Include="Query\DateTimeOffsetPropertyValue.cs" />
     <Compile Include="Query\Extensions\FilterByAccessExtensions.cs" />
     <Compile Include="Query\FilterComposite.cs" />
+    <Compile Include="Query\NotFilter.cs" />
     <Compile Include="Query\GroupingExpression.cs" />
     <Compile Include="Query\IFilter.cs" />
     <Compile Include="Query\ISearchPropertyValue.cs" />
