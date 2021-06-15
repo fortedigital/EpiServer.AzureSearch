@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using EPiServer.Core;
 using EPiServer.PlugIn;
@@ -60,8 +59,8 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             if (exceptionsThresholdReached)
             {
                 message += "Exceptions threshold reached. " +
-                           $"Exceptions: {string.Join(NewLine + NewLine, indexContentRequest.Statistics.Exceptions.Select(e => e.ToString()))}{NewLine}{NewLine}" +
-                           $"Failed for content references: {string.Join(",", indexContentRequest.Statistics.FailedContentReferences.Select(c => c.ToString()))}";
+                           $"Exceptions: {string.Join(NewLine + NewLine, indexContentRequest.Statistics.Exceptions)}{NewLine}{NewLine}" +
+                           $"Failed for content references: {string.Join(",", indexContentRequest.Statistics.FailedContentReferences)}";
 
                 throw new ScheduledJobFailedException(message);
             }
