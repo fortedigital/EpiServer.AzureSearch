@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using EPiServer.Core;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Query;
 
@@ -16,19 +17,19 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             _azureSearchService = azureSearchService;
         }
 
-        public async Task RemoveOutdatedContent(DateTimeOffset olderThan, IList<int> contentIdsToPreserve)
+        public async Task RemoveOutdatedContent(DateTimeOffset olderThan, IList<ContentReference> contentReferencesToPreserve)
         {
-            const int maxContentIdsToPreserve = 1000;
-            if (contentIdsToPreserve.Count > maxContentIdsToPreserve)
+            const int maxContentReferencesToPreserve = 1000;
+            if (contentReferencesToPreserve.Count > maxContentReferencesToPreserve)
             {
-                throw new ArgumentException($"Number of content IDs to preserve cannot be greater than {maxContentIdsToPreserve}", nameof(contentIdsToPreserve));
+                throw new ArgumentException($"Number of content references to preserve cannot be greater than {maxContentReferencesToPreserve}", nameof(contentReferencesToPreserve));
             }
 
             const int topResults = 1000;
 
             var query = new AzureSearchQueryBuilder()
                 .Top(topResults)
-                .Filter(new NotFilter(new AzureSearchFilterSearchIn(nameof(ContentDocument.ContentIdString), contentIdsToPreserve.Select(id => id.ToString()))))
+                .Filter(new NotFilter(new AzureSearchFilterSearchIn(nameof(ContentDocument.ContentComplexReference), contentReferencesToPreserve.Select(reference => reference.ToString()))))
                 .Filter(AzureSearchQueryFilter.LessThan(nameof(ContentDocument.IndexedAt), new DateTimeOffsetPropertyValue(olderThan)))
                 .Build();
 

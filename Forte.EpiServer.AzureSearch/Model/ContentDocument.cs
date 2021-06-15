@@ -11,8 +11,6 @@ namespace Forte.EpiServer.AzureSearch.Model
         public int ContentId { get; set; }
 
         [IsFilterable]
-        public string ContentIdString => ContentId.ToString();
-
         public string ContentComplexReference { get; set; }
         public string ContentImageUrl { get; set; }
         public int ContentImageReferenceId { get; set; }

@@ -61,7 +61,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             {
                 message += "Exceptions threshold reached. " +
                            $"Exceptions: {string.Join(NewLine + NewLine, indexContentRequest.Statistics.Exceptions.Select(e => e.ToString()))}{NewLine}{NewLine}" +
-                           $"Failed for ids: {string.Join(",", indexContentRequest.Statistics.FailedIds.Select(c => c.ID))}";
+                           $"Failed for content references: {string.Join(",", indexContentRequest.Statistics.FailedContentReferences.Select(c => c.ToString()))}";
 
                 throw new ScheduledJobFailedException(message);
             }
@@ -70,8 +70,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             {
                 OnStatusChanged("Clearing outdated items...");
 
-                var contentIdsThatCanStayOutdated = indexContentRequest.Statistics.FailedIds.Select(c => c.ID).ToList();
-                _indexGarbageCollector.RemoveOutdatedContent(jobStartTime, contentIdsThatCanStayOutdated).GetAwaiter().GetResult();
+                _indexGarbageCollector.RemoveOutdatedContent(jobStartTime, indexContentRequest.Statistics.FailedContentReferences).GetAwaiter().GetResult();
             }
 
             stopWatch.Stop();
