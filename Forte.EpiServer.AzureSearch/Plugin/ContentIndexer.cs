@@ -50,7 +50,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             }
             catch (Exception e)
             {
-                indexContentRequest.Statistics.FailedIds.Add(rootContentLink);
+                indexContentRequest.Statistics.FailedContentReferences.Add(rootContentLink);
                 indexContentRequest.Statistics.Exceptions.Add(e);
             }
             
