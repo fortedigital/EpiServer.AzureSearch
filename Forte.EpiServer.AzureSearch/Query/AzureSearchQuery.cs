@@ -28,7 +28,8 @@ namespace Forte.EpiServer.AzureSearch.Query
         public string HighlightPostTag { get; set; }
         public int Skip { get; set; }
         public string ScoringProfile { get; set; }
-        
+        public IList<string> OrderBy { get; set; }
+
         public object Clone()
         {
             var serializedObject = JsonConvert.SerializeObject(this);
