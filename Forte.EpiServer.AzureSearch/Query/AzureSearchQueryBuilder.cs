@@ -97,6 +97,13 @@ namespace Forte.EpiServer.AzureSearch.Query
             
             return this;
         }
+
+        public AzureSearchQueryBuilder OrderBy(IList<string> orderBy)
+        {
+            _query.OrderBy = orderBy;
+
+            return this;
+        }
         
         private sealed class HighlightField
         {

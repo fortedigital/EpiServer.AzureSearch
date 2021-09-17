@@ -32,6 +32,9 @@ namespace Forte.EpiServer.AzureSearch.Model
         public string ContentTypeName { get; set; }
                 
         public string ContentUrl { get; set; }
+
+        [IsSortable]
+        public DateTimeOffset CreatedAt { get; set; }
         
         [IsFilterable]
         public DateTimeOffset? StopPublishUtc { get; set; }
@@ -41,5 +44,10 @@ namespace Forte.EpiServer.AzureSearch.Model
         
         [IsFilterable]
         public string[] AccessUsers { get; set; }
+
+        public class SortableFields
+        {
+            public const string CreatedAt = nameof(ContentDocument.CreatedAt);
+        }
     }
 }

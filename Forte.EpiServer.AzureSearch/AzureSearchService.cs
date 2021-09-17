@@ -68,6 +68,7 @@ namespace Forte.EpiServer.AzureSearch
                 Filter = query.Filter,
                 IncludeTotalResultCount = true,
                 ScoringProfile = query.ScoringProfile,
+                OrderBy = query.OrderBy,
             };
         }
         

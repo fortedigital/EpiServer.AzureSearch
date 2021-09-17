@@ -68,6 +68,7 @@ namespace Forte.EpiServer.AzureSearch.Model
             {
                 document.ContentTypeName = pageData.PageTypeName;
                 document.StopPublishUtc = pageData.StopPublish.HasValue ? new DateTimeOffset(pageData.StopPublish.Value) : (DateTimeOffset?) null;
+                document.CreatedAt = pageData.Created;
 
                 document.AccessRoles = GetReadAccessEntriesNames(pageData, SecurityEntityType.Role);
                 document.AccessUsers = GetReadAccessEntriesNames(pageData, SecurityEntityType.User);
