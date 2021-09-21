@@ -19,6 +19,7 @@ namespace Forte.EpiServer.AzureSearch.Query
 
         private readonly AzureSearchQuery _query = new AzureSearchQuery();
         private readonly IList<FilterComposite> _filters = new List<FilterComposite>();
+        private readonly IList<string> _orderByList = new List<string>();
 
         public AzureSearchQueryBuilder SearchTerm(string term)
         {
@@ -86,7 +87,8 @@ namespace Forte.EpiServer.AzureSearch.Query
         
         public AzureSearchQuery Build()
         {
-            _query.Filter = string.Join($" {_filterOperator.ToString().ToLowerInvariant()} ", _filters.Select(d => d.ToQueryString()));            
+            _query.Filter = string.Join($" {_filterOperator.ToString().ToLowerInvariant()} ", _filters.Select(d => d.ToQueryString()));
+            _query.OrderBy = _orderByList;
             
             return _query;
         }
@@ -98,9 +100,16 @@ namespace Forte.EpiServer.AzureSearch.Query
             return this;
         }
 
-        public AzureSearchQueryBuilder OrderBy(IList<string> orderBy)
+        public AzureSearchQueryBuilder OrderBy(string orderBy)
         {
-            _query.OrderBy = orderBy;
+            _orderByList.Add(orderBy);
+
+            return this;
+        }
+
+        public AzureSearchQueryBuilder OrderByDescending(string orderBy)
+        {
+            _orderByList.Add($"{orderBy} desc");
 
             return this;
         }
