@@ -1,46 +1,38 @@
 # Forte EpiServer Azure Search
 
-This code ads search functionality to your EpiServer project based on Azure Cognitive Search service
+This code adds search functionality to your EpiServer project based on Azure Cognitive Search service
 
 ## Configuration
 
-Once you create Azure Cognitive Search service you'll get service name and admin keys. 
-You need to define those two in your appSettings:
-
-**web.config**
-
-```xml
- <appSettings>
-    <add key="AzureSearchService:Name" value="yourservicename" />
-    <add key="AzureSearchService:ApiKey" value="YOURADMINKEY" />
-  </appSettings>
-``` 
+Once you create Azure Cognitive Search service you'll get service name and admin keys.
 
 NOTE: service name is without _search.windows.net_ suffix.
 
 ## Initialization
 
-For basic search initialization it's enough to create class like this:
+For basic search initialization it's enough to add code like this:
 
+In your **Startup.cs** file
+
+_Step 1._
 ```c#
-using System.Configuration;
-using EPiServer.Framework;
-using Forte.EpiServer.AzureSearch.Configuration;
-
-namespace AlloyDemoKit.ForteSearch
+public void ConfigureServices(IServiceCollection services)
 {
-    [InitializableModule]
-    [ModuleDependency(typeof(EPiServer.Web.InitializationModule))]
-    public class ForteSearchInitializationModule : DefaultAzureSearchServiceInitializationModule
-    {
-        protected override AzureSearchServiceConfiguration GetSearchServiceConfiguration()
-        {
-            var serviceName = ConfigurationManager.AppSettings["AzureSearchService:Name"];
-            var apiKey = ConfigurationManager.AppSettings["AzureSearchService:ApiKey"];
-            
-            return new AzureSearchServiceConfiguration(serviceName,apiKey);
-        }
-    }
+    // (...)
+    services.AddEpiServerAzureSearch<ContentDocument, DefaultDocumentBuilder>
+    (new AzureSearchServiceConfiguration("yourservicename", "YOURADMINKEY")); 
+    // (...)
+}
+```
+You need to pass `AzureSearchServiceConfiguration` object with your service name and the admin key. 
+
+_Step 2._
+```c#
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    // (...)
+    app.UseEpiServerAzureSearch<ContentDocument>();
+    // (...)
 }
 ```
 
@@ -66,8 +58,8 @@ public class PageSearchProvider : ContentSearchProviderBase<ContentDocument>
     public override string Category => "Find pages";
 }
 ```
-
 You can adjust `Area` and `Category` values to your needs - depending which search (pages/blocks/media) it should be attached to 
+
 ## Custom document model
 
 It is highly probable that you'll want to extend built in `ContentDocument` class. You'll have to do it in case when, for example, you want to add new field to be indexed. This is how you do it:
@@ -116,15 +108,25 @@ public class MyCustomDocumentBuilder : DefaultDocumentBuilder<MyCustomDocument>
 }
 ``` 
 
-Now, we have to setup search to make use of new document and document builder. In order to do so, our `ForteSearchInitializationModule` won't inherit from `DefaultAzureSearchServiceInitializationModule` but rather:
+Now, we have to setup search to make use of new document and document builder. In order to do so, just change set your types as a generic parameters in **Startup** file.
 
+_Step 1._
 ```c#
-[InitializableModule]
-[ModuleDependency(typeof(EPiServer.Web.InitializationModule))]
-public class ForteSearchInitializationModule : AzureSearchServiceInitializationModule<MyCustomDocument, MyCustomDocumentBuilder>
+public void ConfigureServices(IServiceCollection services)
 {
-    /// AzureSearchServiceConfiguration GetSearchServiceConfiguration() goes here as before
- 
+    // (...)
+    services.AddEpiServerAzureSearch<MyCustomDocument, MyCustomDocumentBuilder>
+    (new AzureSearchServiceConfiguration("yourservicename", "YOURADMINKEY")); 
+    // (...)
+}
+```
+_Step 2._
+```c#
+public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+{
+    // (...)
+    app.UseEpiServerAzureSearch<MyCustomDocument>();
+    // (...)
 }
 ```
 
@@ -189,27 +191,24 @@ public class ArticlePageContentExtractor : IContentExtractor
 }
 ```
 
-Note, that once created, such class has to be registered in your StructureMap, for example here:
+Note, that once created, such class has to be registered in your **Startup** file, for example:
 
 ```c#
-[InitializableModule]
-[ModuleDependency(typeof(EPiServer.Web.InitializationModule))]
-public class ForteSearchInitializationModule : AzureSearchServiceInitializationModule<MyCustomDocument, MyCustomDocumentBuilder>
+public void ConfigureServices(IServiceCollection services)
 {
-    /// AzureSearchServiceConfiguration GetSearchServiceConfiguration() goes here as before
-    public override void ConfigureContainer(ServiceConfigurationContext context)
-    {
-        base.ConfigureContainer(context);
-         
-        context.StructureMap().Configure(c =>
-        {
-            c.Scan(a =>
-            {
-                a.TheCallingAssembly();
-                a.AddAllTypesOf<IContentExtractor>();
-            });
-        });
+    // (...)
+    services.AddTransient<IContentExtractor, ArticlePageContentExtractor>(); 
+    // (...)
+}
+```
 
-    }
+# Settings
+
+In some cases, you may need to disable events handling. To disable events handling dynamically create new instance of DisabledEventsHandlerScope **(and remember to call Dispose() on it or wrap with using block)** from Forte.EpiEasyEvents namespace or set property IsHandlingDisabled from Forte.EpiEasyEvents.Configuration namespace to true.
+
+
+```cs
+using(new Forte.EpiEasyEvents.DisabledEventsHandlerScope()) {
+    //...code here without events handling
 }
 ```
