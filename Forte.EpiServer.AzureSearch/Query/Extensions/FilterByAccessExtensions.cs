@@ -1,5 +1,6 @@
+using System;
 using System.Linq;
-using EPiServer.Security;
+using System.Security.Claims;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Query.Extensions
@@ -10,11 +11,12 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
         /// Method filters search items by allowed roles and users
         /// </summary>
         /// <param name="queryBuilder"></param>
+        /// <param name="claimPrincipals"></param>
         /// <returns></returns>
-        public static AzureSearchQueryBuilder FilterOnRoleAccess(this AzureSearchQueryBuilder queryBuilder)
+        public static AzureSearchQueryBuilder FilterOnRoleAccess(this AzureSearchQueryBuilder queryBuilder, ClaimsPrincipal claimPrincipals)
         {
-            var currentPrincipalRoles = PrincipalInfo.Current?.RoleList ?? Enumerable.Empty<string>();
-
+            _ = claimPrincipals ?? throw new ArgumentNullException((nameof(claimPrincipals)));
+            var currentPrincipalRoles = claimPrincipals.Claims?.Where(claim => claim.Type == ClaimTypes.Role).Select(claim => claim.Value);
             var rolesAccessFilters = currentPrincipalRoles
                 .Select(roleName => new AzureSearchQueryFilter(nameof(ContentDocument.AccessRoles),
                     ComparisonExpression.Eq, roleName)

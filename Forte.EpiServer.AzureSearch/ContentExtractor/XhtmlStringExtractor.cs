@@ -1,18 +1,19 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Principal;
 using AngleSharp;
 using AngleSharp.Dom;
 using EPiServer;
 using EPiServer.Core;
 using EPiServer.Core.Html;
 using EPiServer.Core.Html.StringParsing;
-using EPiServer.Security;
 
 namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
     public class XhtmlStringExtractor
     {
         private readonly IContentLoader _contentLoader;
+
         public XhtmlStringExtractor(IContentLoader contentLoader)
         {
             _contentLoader = contentLoader;
@@ -24,13 +25,14 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             {
                 return string.Empty;
             }
+
             var texts = new List<string>();
             var staticFragments = new List<string>();
 
             var xhtmlFragments = xhtmlString
                 .Fragments
-                .GetFilteredFragments(PrincipalInfo.AnonymousPrincipal);
-            
+                .GetFilteredFragments(GetAnonymousPrincipal());
+
             foreach (var fragment in xhtmlFragments)
             {
                 switch (fragment)
@@ -44,9 +46,9 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                             texts.Add(RemoveScripts(staticFragments));
                             staticFragments.Clear();
                         }
-                        
+
                         var content = _contentLoader.Get<IContent>(contentFragment.ContentLink);
-                        
+
                         texts.Add(extractor.ExtractBlock(content));
                         break;
                     }
@@ -56,7 +58,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         break;
                 }
             }
-            
+
             if (staticFragments.Any())
             {
                 texts.Add(RemoveScripts(staticFragments));
@@ -66,6 +68,8 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 texts.Select(t => t.Trim()));
             return StripHtml(joinedText);
         }
+
+        private static IPrincipal GetAnonymousPrincipal() => new GenericPrincipal(new GenericIdentity(string.Empty), null);
 
         private static string StripHtml(string html)
         {
@@ -77,12 +81,12 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
         {
             return RemoveScripts(string.Join("", strings));
         }
-        
+
         private static string RemoveScripts(string htmlString)
         {
             var parser = new AngleSharp.Html.Parser.HtmlParser();
             var document = parser.ParseDocument("<html><body></body></html>");
-            
+
             var htmlFragment = parser.ParseFragment(htmlString, document.Body);
             foreach (var scriptElement in htmlFragment.QuerySelectorAll("script"))
             {

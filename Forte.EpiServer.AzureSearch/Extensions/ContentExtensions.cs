@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Text;
 using EPiServer.Core;
 using EPiServer.Filters;
-using EPiServer.Security;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Extensions

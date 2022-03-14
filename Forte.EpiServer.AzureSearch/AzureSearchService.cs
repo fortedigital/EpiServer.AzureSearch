@@ -10,6 +10,7 @@ using Forte.EpiServer.AzureSearch.Query;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
 using Polly;
+using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace Forte.EpiServer.AzureSearch
 {
