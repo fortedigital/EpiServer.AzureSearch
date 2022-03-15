@@ -21,7 +21,7 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
 
             var rolesAccessFilters = GetRoles(principal)
                 .Select(roleName => new AzureSearchQueryFilter(nameof(ContentDocument.AccessRoles),
-                    ComparisonExpression.Eq, principal.IsInRole(roleName))
+                    ComparisonExpression.Eq, roleName)
                 {
                     GroupingExpression = GroupingExpression.Any
                 });
