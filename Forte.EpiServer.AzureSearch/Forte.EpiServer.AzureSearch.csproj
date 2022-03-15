@@ -9,6 +9,8 @@
     <Copyright>Copyright $(CurrentYear)</Copyright>
     <PackageVersion>3.0.0</PackageVersion>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageDescription>The search functionality in your EpiServer project based on Azure Cognitive Search service</PackageDescription>
+    <PackageTags>episerver events search azure forte</PackageTags>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
   <ItemGroup>
