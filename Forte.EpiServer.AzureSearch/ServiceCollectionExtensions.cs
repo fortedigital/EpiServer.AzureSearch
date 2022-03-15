@@ -38,9 +38,9 @@ namespace Microsoft.Extensions.DependencyInjection
             where TDocument : ContentDocument where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
             services.AddSingleton<SearchEventHandler<TDocument>>();
-            services.AddSingleton<PageDocumentsProvider<TDocument>>();
-            services.AddSingleton<BlockDocumentsProvider<TDocument>>();
             services.AddSingleton<EventsRegistry<TDocument>>();
+            services.AddTransient<PageDocumentsProvider<TDocument>>();
+            services.AddTransient<BlockDocumentsProvider<TDocument>>();
             services.AddTransient<IContentIndexer, ContentIndexer<TDocument>>();
             services.AddTransient<IContentDocumentBuilder<TDocument>, TDocumentBuilder>();
             services.AddTransient<IIndexDefinitionHandler, IndexDefinitionHandler<TDocument>>();
