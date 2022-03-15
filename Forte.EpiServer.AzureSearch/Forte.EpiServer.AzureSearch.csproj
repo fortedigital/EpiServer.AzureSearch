@@ -13,7 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="0.16.1" />
-    <PackageReference Include="EPiServer.CMS.UI" Version="12.3.1" />
+    <PackageReference Include="EPiServer.CMS.UI" Version="12.3.0" />
     <PackageReference Include="EPiServer.Framework" Version="12.3.0" />
     <PackageReference Include="Microsoft.Azure.Search" Version="10.1.0" />
     <PackageReference Include="Polly" Version="7.2.3" />

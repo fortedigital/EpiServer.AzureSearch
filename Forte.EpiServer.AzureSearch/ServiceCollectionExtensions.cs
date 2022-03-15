@@ -6,6 +6,7 @@ using Forte.EpiServer.AzureSearch.Indexes;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Plugin;
 using Microsoft.AspNetCore.Builder;
+
 // ReSharper disable CheckNamespace
 // Having this namespace, the client of this code doesn't have to reference this namespace in startup file.
 namespace Microsoft.Extensions.DependencyInjection
@@ -20,6 +21,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IAzureSearchService, AzureSearchService>();
 
             services.AddTransient<IContentExtractor, IndexableContentExtractor>();
+            services.AddTransient<XhtmlStringExtractor>();
+            services.AddTransient<AzureSearchIndexManager>();
+            services.AddTransient<BackgroundAzureSearchIndexManager>();
             services.AddTransient<IContentExtractorController, ContentExtractorController>();
             services.AddTransient<IIndexNamingConvention, PrefixedIndexNamingConvention>();
             services.AddTransient<DefaultDocumentBuilder>();
@@ -34,6 +38,9 @@ namespace Microsoft.Extensions.DependencyInjection
             where TDocument : ContentDocument where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
             services.AddSingleton<SearchEventHandler<TDocument>>();
+            services.AddSingleton<PageDocumentsProvider<TDocument>>();
+            services.AddSingleton<BlockDocumentsProvider<TDocument>>();
+            services.AddSingleton<EventsRegistry<TDocument>>();
             services.AddTransient<IContentIndexer, ContentIndexer<TDocument>>();
             services.AddTransient<IContentDocumentBuilder<TDocument>, TDocumentBuilder>();
             services.AddTransient<IIndexDefinitionHandler, IndexDefinitionHandler<TDocument>>();
