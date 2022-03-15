@@ -36,7 +36,7 @@ public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 }
 ```
 
-This will add scheduled job to your EpiServer installation which is responsible for full index of content 
+This will add scheduled job, called: **_[Search] Index content_** to your EpiServer installation which is responsible for full index of content 
 and will register event handlers so content is updated on publish events. 
 
 ## Search providers
@@ -81,7 +81,7 @@ In order to do so, we'll create `MyCustomDocumentBuilder` class:
 ```c#
 public class MyCustomDocumentBuilder : DefaultDocumentBuilder<MyCustomDocument>
 {
-    public MyCustomeDocumentBuilder(IUrlResolver urlResolver, 
+    public MyCustomDocumentBuilder(IUrlResolver urlResolver, 
         IContentLoader contentLoader, 
         IContentExtractorController contentExtractorController,
         IContentTypeRepository contentTypeRepository)
@@ -89,7 +89,7 @@ public class MyCustomDocumentBuilder : DefaultDocumentBuilder<MyCustomDocument>
     {
     }
 
-    public override MyCustomContentDocument Build(IContent content)
+    public override MyCustomDocument Build(IContent content)
     {
         var document = base.Build(content);
 
@@ -175,18 +175,17 @@ public class ArticlePageContentExtractor : IContentExtractor
 
     public bool CanExtract(IContentData content)
     {
-        return content is ArticlePageBase;
+        return content is ArticlePage;
     }
 
-    public ContentExtractionResult Extract(IContent content, ContentExtractorController extractor)
+    public ContentExtractionResult Extract(IContentData content, IContentExtractorController extractor)
     {
-        var article = (ArticlePageBase) content;
+        var article = (ArticlePage) content;
 
         var articleBody = _xhtmlStringExtractor.GetPlainTextContent(article.Body, extractor);
-        var articleIntro = _xhtmlStringExtractor.GetPlainTextContent(article.Intro, extractor);
-        var articleHeading = article.Heading;
+        var articleSummary = article.Summary;
         
-        return new ContentExtractionResult(new[] {articleBody, articleIntro, articleHeading}, null);
+        return new ContentExtractionResult(new[] {articleBody, articleSummary}, null);
     }
 }
 ```
@@ -199,16 +198,5 @@ public void ConfigureServices(IServiceCollection services)
     // (...)
     services.AddTransient<IContentExtractor, ArticlePageContentExtractor>(); 
     // (...)
-}
-```
-
-# Settings
-
-In some cases, you may need to disable events handling. To disable events handling dynamically create new instance of DisabledEventsHandlerScope **(and remember to call Dispose() on it or wrap with using block)** from Forte.EpiEasyEvents namespace or set property IsHandlingDisabled from Forte.EpiEasyEvents.Configuration namespace to true.
-
-
-```cs
-using(new Forte.EpiEasyEvents.DisabledEventsHandlerScope()) {
-    //...code here without events handling
 }
 ```

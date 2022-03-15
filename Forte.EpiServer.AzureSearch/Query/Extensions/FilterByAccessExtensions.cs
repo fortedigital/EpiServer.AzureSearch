@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Principal;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Query.Extensions
@@ -11,20 +13,29 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
         /// Method filters search items by allowed roles and users
         /// </summary>
         /// <param name="queryBuilder"></param>
-        /// <param name="claimPrincipals"></param>
+        /// <param name="principal"></param>
         /// <returns></returns>
-        public static AzureSearchQueryBuilder FilterOnRoleAccess(this AzureSearchQueryBuilder queryBuilder, ClaimsPrincipal claimPrincipals)
+        public static AzureSearchQueryBuilder FilterOnRoleAccess(this AzureSearchQueryBuilder queryBuilder, IPrincipal principal)
         {
-            _ = claimPrincipals ?? throw new ArgumentNullException((nameof(claimPrincipals)));
-            var currentPrincipalRoles = claimPrincipals.Claims?.Where(claim => claim.Type == ClaimTypes.Role).Select(claim => claim.Value);
-            var rolesAccessFilters = currentPrincipalRoles
+            _ = principal ?? throw new ArgumentNullException(nameof(principal));
+
+            var rolesAccessFilters = GetRoles(principal)
                 .Select(roleName => new AzureSearchQueryFilter(nameof(ContentDocument.AccessRoles),
-                    ComparisonExpression.Eq, roleName)
+                    ComparisonExpression.Eq, principal.IsInRole(roleName))
                 {
                     GroupingExpression = GroupingExpression.Any
                 });
 
             return queryBuilder.Filter(new FilterComposite(Operator.Or, rolesAccessFilters));
+        }
+
+        private static IEnumerable<string> GetRoles(IPrincipal principal)
+        {
+            return principal is ClaimsPrincipal claimsPrincipal
+                ? claimsPrincipal.Identities.SelectMany(i => i.Claims
+                    .Where(c => c.Type == i.RoleClaimType)
+                    .Select(c => c.Value))
+                : Enumerable.Empty<string>();
         }
     }
 }
