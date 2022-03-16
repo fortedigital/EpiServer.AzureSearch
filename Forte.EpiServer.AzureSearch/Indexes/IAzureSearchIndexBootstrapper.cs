@@ -3,7 +3,7 @@ using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Indexes
 {
-    public interface IAzureSearchIndexManager
+    public interface IAzureSearchIndexBootstrapper
     {
         Task CreateOrUpdateIndexAsync<TDocument>() where TDocument : ContentDocument;
     }

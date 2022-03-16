@@ -17,24 +17,24 @@ namespace Microsoft.Extensions.DependencyInjection
             where TDocument : ContentDocument
             where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
-            services.AddSingleton(new AzureSearchServiceConfiguration(serviceName, apiKey));
+            services.AddSingleton(new AzureSearchServiceOptions(serviceName, apiKey));
             services.AddSingleton<IAzureSearchService, AzureSearchService>();
 
             services.AddTransient<IContentExtractor, IndexableContentExtractor>();
             services.AddTransient<XhtmlStringExtractor>();
-            services.AddTransient<AzureSearchIndexManager>();
-            services.AddTransient<BackgroundAzureSearchIndexManager>();
+            services.AddTransient<AzureSearchIndexBootstrapper>();
+            services.AddTransient<BackgroundAzureSearchIndexBootstrapper>();
             services.AddTransient<IContentExtractorController, ContentExtractorController>();
             services.AddTransient<IIndexNamingConvention, PrefixedIndexNamingConvention>();
             services.AddTransient<DefaultDocumentBuilder>();
             services.AddTransient<IIndexSpecificationProvider, NullIndexSpecificationProvider>();
 
-            AddForDocumentSpecific<TDocument, TDocumentBuilder>(services);
+            RegisterDocumentSpecificServices<TDocument, TDocumentBuilder>(services);
 
             return services;
         }
 
-        private static void AddForDocumentSpecific<TDocument, TDocumentBuilder>(IServiceCollection services)
+        private static void RegisterDocumentSpecificServices<TDocument, TDocumentBuilder>(IServiceCollection services)
             where TDocument : ContentDocument where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
             services.AddSingleton<SearchEventHandler<TDocument>>();
@@ -50,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
         public static void UseEpiServerAzureSearch<TDocument>(this IApplicationBuilder app) where TDocument : ContentDocument
         {
             app.ApplicationServices.GetRequiredService<EventsRegistry<TDocument>>().RegisterEvents();
-            app.ApplicationServices.GetRequiredService<BackgroundAzureSearchIndexManager>().CreateOrUpdateIndexAsync<TDocument>();
+            app.ApplicationServices.GetRequiredService<BackgroundAzureSearchIndexBootstrapper>().CreateOrUpdateIndexAsync<TDocument>();
         }
     }
 }

@@ -22,11 +22,11 @@ namespace Forte.EpiServer.AzureSearch
 
         public const int BatchMaximumSize = 1000;
 
-        public AzureSearchService(AzureSearchServiceConfiguration configuration, ILogger<AzureSearchService> logger, IIndexNamingConvention indexNamingConvention)
+        public AzureSearchService(AzureSearchServiceOptions options, ILogger<AzureSearchService> logger, IIndexNamingConvention indexNamingConvention)
         {
             _logger = logger;
             _indexNamingConvention = indexNamingConvention;
-            _client = new SearchServiceClient(configuration.ServiceName, new SearchCredentials(configuration.ApiKey));
+            _client = new SearchServiceClient(options.ServiceName, new SearchCredentials(options.ApiKey));
         }
 
         public async Task<DocumentSearchResult<T>> SearchAsync<T>(AzureSearchQuery query, string indexName = null) where T : SearchDocument

@@ -4,12 +4,12 @@ using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Indexes
 {
-    public class AzureSearchIndexManager : IAzureSearchIndexManager
+    public class AzureSearchIndexBootstrapper : IAzureSearchIndexBootstrapper
     {
         private readonly IAzureSearchService _azureSearchService;
         private readonly IIndexSpecificationProvider _indexSpecificationProvider;
 
-        public AzureSearchIndexManager(IAzureSearchService azureSearchService, IIndexSpecificationProvider indexSpecificationProvider)
+        public AzureSearchIndexBootstrapper(IAzureSearchService azureSearchService, IIndexSpecificationProvider indexSpecificationProvider)
         {
             _azureSearchService = azureSearchService;
             _indexSpecificationProvider = indexSpecificationProvider;

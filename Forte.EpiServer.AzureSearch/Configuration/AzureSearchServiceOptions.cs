@@ -1,11 +1,11 @@
 namespace Forte.EpiServer.AzureSearch.Configuration
 {
-    public class AzureSearchServiceConfiguration
+    public class AzureSearchServiceOptions
     {
         public string ServiceName { get; }
         public string ApiKey { get; }
 
-        public AzureSearchServiceConfiguration(string serviceName, string apiKey)
+        public AzureSearchServiceOptions(string serviceName, string apiKey)
         {
             ServiceName = serviceName;
             ApiKey = apiKey;
