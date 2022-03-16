@@ -19,8 +19,7 @@ _Step 1._
 public void ConfigureServices(IServiceCollection services)
 {
     // (...)
-    services.AddEpiServerAzureSearch<ContentDocument, DefaultDocumentBuilder>
-    (new AzureSearchServiceConfiguration("yourservicename", "YOURADMINKEY")); 
+    services.AddEpiServerAzureSearch<ContentDocument, DefaultDocumentBuilder>("yourservicename", "YOURADMINKEY"); 
     // (...)
 }
 ```
@@ -115,8 +114,7 @@ _Step 1._
 public void ConfigureServices(IServiceCollection services)
 {
     // (...)
-    services.AddEpiServerAzureSearch<MyCustomDocument, MyCustomDocumentBuilder>
-    (new AzureSearchServiceConfiguration("yourservicename", "YOURADMINKEY")); 
+    services.AddEpiServerAzureSearch<MyCustomDocument, MyCustomDocumentBuilder>("yourservicename", "YOURADMINKEY"); 
     // (...)
 }
 ```

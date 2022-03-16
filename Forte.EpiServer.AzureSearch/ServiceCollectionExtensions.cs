@@ -13,11 +13,11 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddEpiServerAzureSearch<TDocument, TDocumentBuilder>(this IServiceCollection services, AzureSearchServiceConfiguration configuration)
+        public static IServiceCollection AddEpiServerAzureSearch<TDocument, TDocumentBuilder>(this IServiceCollection services, string serviceName, string apiKey)
             where TDocument : ContentDocument
             where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
-            services.AddSingleton(configuration);
+            services.AddSingleton(new AzureSearchServiceConfiguration(serviceName, apiKey));
             services.AddSingleton<IAzureSearchService, AzureSearchService>();
 
             services.AddTransient<IContentExtractor, IndexableContentExtractor>();
