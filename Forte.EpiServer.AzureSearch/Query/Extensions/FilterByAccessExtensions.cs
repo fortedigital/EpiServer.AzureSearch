@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
+using EPiServer.Security;
+using EPiServer.Security.Internal;
+using EPiServer.ServiceLocation;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Query.Extensions
@@ -27,6 +30,17 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
                 });
 
             return queryBuilder.Filter(new FilterComposite(Operator.Or, rolesAccessFilters));
+        }
+
+        /// <summary>
+        /// Method filters search items by allowed roles for current user.
+        /// </summary>
+        /// <param name="queryBuilder"></param>
+        /// <returns></returns>
+        public static AzureSearchQueryBuilder FilterOnRoleAccessForCurrentPrincipal(this AzureSearchQueryBuilder queryBuilder)
+        {
+            var currentPrincipal = ServiceLocator.Current.TryGetExistingInstance<IPrincipalAccessor>(out var instance) ? instance.Principal : FallbackPrincipal.Current;
+            return queryBuilder.FilterOnRoleAccess(currentPrincipal);
         }
 
         private static IEnumerable<string> GetRoles(IPrincipal principal)

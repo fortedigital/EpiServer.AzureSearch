@@ -17,6 +17,6 @@ namespace Forte.EpiServer.AzureSearch.Indexes
 
         public Task CreateOrUpdateIndexAsync<TDocument>() where TDocument : ContentDocument =>
             Task.Run(() => _azureSearchIndexBootstrapper.CreateOrUpdateIndexAsync<TDocument>()
-                .ContinueWith(t => { _logger.LogError(t.Exception, "Error when creating search index"); }, TaskContinuationOptions.OnlyOnFaulted));
+                .ContinueWith(t => _logger.LogError(t.Exception, "Error when creating search index"), TaskContinuationOptions.OnlyOnFaulted));
     }
 }

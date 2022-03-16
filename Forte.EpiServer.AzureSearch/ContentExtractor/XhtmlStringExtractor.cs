@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 using AngleSharp;
 using AngleSharp.Dom;
 using EPiServer;
 using EPiServer.Core;
 using EPiServer.Core.Html;
 using EPiServer.Core.Html.StringParsing;
+using EPiServer.Security.Internal;
 
 namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
@@ -31,7 +31,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
 
             var xhtmlFragments = xhtmlString
                 .Fragments
-                .GetFilteredFragments(GetAnonymousPrincipal());
+                .GetFilteredFragments(FallbackPrincipal.AnonymousPrincipal);
 
             foreach (var fragment in xhtmlFragments)
             {
@@ -68,8 +68,6 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 texts.Select(t => t.Trim()));
             return StripHtml(joinedText);
         }
-
-        private static IPrincipal GetAnonymousPrincipal() => new GenericPrincipal(new GenericIdentity(string.Empty), null);
 
         private static string StripHtml(string html)
         {

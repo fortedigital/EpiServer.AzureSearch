@@ -5,6 +5,7 @@ This code adds search functionality to your EpiServer project based on Azure Cog
 ## Configuration
 
 Once you create Azure Cognitive Search service you'll get service name and admin keys.
+You will need to provide them during initialization process described in the next section.
 
 NOTE: service name is without _search.windows.net_ suffix.
 
@@ -12,7 +13,7 @@ NOTE: service name is without _search.windows.net_ suffix.
 
 For basic search initialization it's enough to add code like this:
 
-In your **Startup.cs** file
+In your startup class.
 
 _Step 1._
 ```c#
@@ -107,7 +108,7 @@ public class MyCustomDocumentBuilder : DefaultDocumentBuilder<MyCustomDocument>
 }
 ``` 
 
-Now, we have to setup search to make use of new document and document builder. In order to do so, just change set your types as a generic parameters in **Startup** file.
+Now, we have to setup search to make use of new document and document builder. In order to do so, just set your types as a generic parameters in startup class.
 
 _Step 1._
 ```c#
@@ -188,7 +189,7 @@ public class ArticlePageContentExtractor : IContentExtractor
 }
 ```
 
-Note, that once created, such class has to be registered in your **Startup** file, for example:
+Note, that once created, such class has to be registered in your startup class, for example:
 
 ```c#
 public void ConfigureServices(IServiceCollection services)
