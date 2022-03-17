@@ -24,7 +24,7 @@ public void ConfigureServices(IServiceCollection services)
     // (...)
 }
 ```
-You need to pass `AzureSearchServiceConfiguration` object with your service name and the admin key. 
+You need to pass your service name and the admin key. 
 
 _Step 2._
 ```c#

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using EPiServer.Security;
-using EPiServer.Security.Internal;
 using EPiServer.ServiceLocation;
+using Forte.EpiServer.AzureSearch.Helpers;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Query.Extensions
@@ -39,7 +39,7 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
         /// <returns></returns>
         public static AzureSearchQueryBuilder FilterOnRoleAccessForCurrentPrincipal(this AzureSearchQueryBuilder queryBuilder)
         {
-            var currentPrincipal = ServiceLocator.Current.TryGetExistingInstance<IPrincipalAccessor>(out var instance) ? instance.Principal : FallbackPrincipal.Current;
+            var currentPrincipal = ServiceLocator.Current.TryGetExistingInstance<IPrincipalAccessor>(out var instance) ? instance.Principal : PrincipalFallbackProvider.Current;
             return queryBuilder.FilterOnRoleAccess(currentPrincipal);
         }
 

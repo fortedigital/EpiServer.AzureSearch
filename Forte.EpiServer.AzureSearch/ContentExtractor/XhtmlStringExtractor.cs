@@ -6,7 +6,7 @@ using EPiServer;
 using EPiServer.Core;
 using EPiServer.Core.Html;
 using EPiServer.Core.Html.StringParsing;
-using EPiServer.Security.Internal;
+using Forte.EpiServer.AzureSearch.Helpers;
 
 namespace Forte.EpiServer.AzureSearch.ContentExtractor
 {
@@ -31,7 +31,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
 
             var xhtmlFragments = xhtmlString
                 .Fragments
-                .GetFilteredFragments(FallbackPrincipal.AnonymousPrincipal);
+                .GetFilteredFragments(PrincipalFallbackProvider.AnonymousPrincipal);
 
             foreach (var fragment in xhtmlFragments)
             {
