@@ -2,30 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using EPiServer.Logging;
 using Forte.EpiServer.AzureSearch.Configuration;
 using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Query;
 using Microsoft.Azure.Search;
 using Microsoft.Azure.Search.Models;
+using Microsoft.Extensions.Logging;
 using Polly;
+using Index = Microsoft.Azure.Search.Models.Index;
 
 namespace Forte.EpiServer.AzureSearch
 {
     public class AzureSearchService : IAzureSearchService, IDisposable
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<AzureSearchService> _logger;
         private readonly IIndexNamingConvention _indexNamingConvention;
         private readonly SearchServiceClient _client;
 
         public const int BatchMaximumSize = 1000;
 
-        public AzureSearchService(AzureSearchServiceConfiguration configuration, ILogger logger, IIndexNamingConvention indexNamingConvention)
+        public AzureSearchService(AzureSearchServiceOptions options, ILogger<AzureSearchService> logger, IIndexNamingConvention indexNamingConvention)
         {
             _logger = logger;
             _indexNamingConvention = indexNamingConvention;
-            _client = new SearchServiceClient(configuration.ServiceName, new SearchCredentials(configuration.ApiKey));
+            _client = new SearchServiceClient(options.ServiceName, new SearchCredentials(options.ApiKey));
         }
 
         public async Task<DocumentSearchResult<T>> SearchAsync<T>(AzureSearchQuery query, string indexName = null) where T : SearchDocument
@@ -37,7 +38,7 @@ namespace Forte.EpiServer.AzureSearch
                 .GetClient(indexName ?? GetDefaultIndexName<T>())
                 .Documents
                 .SearchAsync<T>(query.SearchTerm + "*", searchParameters)
-                .ConfigureAwait(false); 
+                .ConfigureAwait(false);
         }
 
         public DocumentSearchResult<T> Search<T>(AzureSearchQuery query, string indexName = null) where T : SearchDocument
@@ -47,7 +48,7 @@ namespace Forte.EpiServer.AzureSearch
 
         public async Task<DocumentIndexResult> DeleteAsync<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
         {
-            return await IndexBatchWithRetryAsync(IndexAction.Delete, documents,  indexName);
+            return await IndexBatchWithRetryAsync(IndexAction.Delete, documents, indexName);
         }
 
         public void Delete<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
@@ -71,7 +72,7 @@ namespace Forte.EpiServer.AzureSearch
                 OrderBy = query.OrderBy,
             };
         }
-        
+
         public async Task<DocumentIndexResult> IndexAsync<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
         {
             return await IndexBatchWithRetryAsync(IndexAction.Upload, documents, indexName);
@@ -91,12 +92,12 @@ namespace Forte.EpiServer.AzureSearch
                     retryAttempt => TimeSpan.FromSeconds(retryAttempt),
                     async (exception, span) =>
                     {
-                        var indexBatchException = (IndexBatchException) exception;
+                        var indexBatchException = (IndexBatchException)exception;
                         var itemsToRetry = indexBatchException.FindFailedActionsToRetry(indexBatch, d => d.Id);
 
                         var now = DateTimeOffset.UtcNow;
                         Array.ForEach(documentsArray, d => d.IndexedAt = now);
-                        
+
                         await ExecuteIndexBatchAsync(itemsToRetry, indexName);
                     });
 
@@ -105,23 +106,23 @@ namespace Forte.EpiServer.AzureSearch
                     var indexBatchResult = await policy.ExecuteAsync(async () =>
                     {
                         var now = DateTimeOffset.UtcNow;
-        
+
                         Array.ForEach(documentsArray, d => d.IndexedAt = now);
-            
+
                         return await ExecuteIndexBatchAsync(indexBatch, indexName);
                     });
-                
+
                     indexingResults.AddRange(indexBatchResult.Results);
                 }
                 catch (Exception e)
                 {
-                    _logger.Log(Level.Error, "Exception when indexing content", e);
+                    _logger.LogError(e, "Exception when indexing content");
                 }
             }
-            
+
             return new DocumentIndexResult(indexingResults);
         }
-        
+
         public DocumentIndexResult Index<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
         {
             return IndexAsync(documents, indexName).GetAwaiter().GetResult();
@@ -149,7 +150,7 @@ namespace Forte.EpiServer.AzureSearch
         {
             DropIndexAsync<T>().GetAwaiter().GetResult();
         }
-        
+
         public async Task DropIndexAsync<T>() where T : SearchDocument
         {
             var indexName = GetDefaultIndexName<T>();
@@ -167,7 +168,7 @@ namespace Forte.EpiServer.AzureSearch
                 Name = GetDefaultIndexName<T>(),
                 Fields = FieldBuilder.BuildForType<T>(),
             };
-            
+
             indexSpecification?.Setup(indexDefinition);
 
             await _client
@@ -183,7 +184,7 @@ namespace Forte.EpiServer.AzureSearch
                 .GetClient(indexName ?? GetDefaultIndexName<T>())
                 .Documents
                 .IndexAsync(indexBatch)
-                .ConfigureAwait(false);                
+                .ConfigureAwait(false);
         }
 
         public string GetDefaultIndexName<T>() where T : SearchDocument
