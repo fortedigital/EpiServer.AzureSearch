@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Forte.EpiServer.AzureSearch.Configuration;
-using Forte.EpiServer.AzureSearch.Extensions;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Query;
 using Microsoft.Azure.Search;

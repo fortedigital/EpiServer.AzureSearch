@@ -5,6 +5,7 @@ using Forte.EpiServer.AzureSearch.Events;
 using Forte.EpiServer.AzureSearch.Indexes;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Plugin;
+using Forte.EpiServer.AzureSearch.Plugin.Filters;
 using Microsoft.AspNetCore.Builder;
 
 // ReSharper disable CheckNamespace
@@ -28,6 +29,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<IIndexNamingConvention, PrefixedIndexNamingConvention>();
             services.AddTransient<DefaultDocumentBuilder>();
             services.AddTransient<IIndexSpecificationProvider, NullIndexSpecificationProvider>();
+
+            services.AddSingleton<IContentIndexFilter, PublishedFilter>();
+            services.AddSingleton<IContentIndexFilter, TemplateFilter>();
+            services.AddSingleton<IContentIndexFilter, ShortcutFilter>();
 
             RegisterDocumentSpecificServices<TDocument, TDocumentBuilder>(services);
 

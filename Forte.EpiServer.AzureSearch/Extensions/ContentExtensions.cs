@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using EPiServer.Core;
-using EPiServer.Filters;
 using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Extensions
@@ -63,16 +62,6 @@ namespace Forte.EpiServer.AzureSearch.Extensions
                     yield return propertyData;
                 }
             }
-        }
-
-        public static bool ShouldIndexPage(this IContent content)
-        {
-            var filterPublished = new FilterPublished();
-            var filterTemplate = new FilterTemplate();
-            var hasTemplate = !filterTemplate.ShouldFilter(content);
-            var isPublished = !filterPublished.ShouldFilter(content);
-            
-            return hasTemplate && isPublished;
         }
     }
 }

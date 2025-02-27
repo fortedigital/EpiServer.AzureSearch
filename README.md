@@ -199,3 +199,49 @@ public void ConfigureServices(IServiceCollection services)
     // (...)
 }
 ```
+## Custom content filtering
+
+By default, `PublishedFilter`, `TemplateFilter` and `ShortcutFilter` are used to filter out content which should not be indexed. It means that only published content, which has template and has no shortcut defined will be indexed.
+
+You can change this behavior by creating custom content filter. To do so, you have to create class which will implement `IContentIndexFilter` interface:
+
+```c#
+public class MyCustomContentFilter : IContentIndexFilter
+{
+    public bool ShouldIndexContent(IContent content)
+    {
+        return content is ArticlePage articlePage && articlePage.Categories.Contains(1);
+    }
+}
+```
+
+Once created, such class has to be registered in your startup class, for example:
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    // (...)
+    services.AddSingleton<IContentIndexFilter, MyCustomContentFilter>(); 
+    // (...)
+}
+```
+
+### Disabling default filters
+
+If for some reason you want to disable all or some of the default filters, you can simply remove them from the service collection and register only the ones you want to use (please note that it should be done *after* calling `AddEpiServerAzureSearch` method):
+
+```c#
+public void ConfigureServices(IServiceCollection services)
+{
+    // (...)
+    services.AddEpiServerAzureSearch<ContentDocument, DefaultDocumentBuilder>("yourservicename", "YOURADMINKEY"); 
+    
+    // Remove all default filters
+    services.RemoveAll<IContentIndexFilter>();
+    
+    // Add only PublishedFilter and custom filter
+    services.AddSingleton<IContentIndexFilter, PublishedFilter>();
+    services.AddSingleton<IContentIndexFilter, MyCustomContentFilter>();
+    // (...)
+}
+```

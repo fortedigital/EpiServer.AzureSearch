@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using EPiServer;
 using EPiServer.Cms.Shell;
@@ -165,19 +164,19 @@ namespace Forte.EpiServer.AzureSearch.Events
         {
             var documentsToIndex = _blockDocumentsProvider.GetDocuments(content);
             
-            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
         
         private void DeletePageTreeFromIndex(IContent root)
         {
             var documentsToRemoveFromIndex = _pageDocumentsProvider.GetPageTreeAllLanguagesDocuments(root, true);
-            Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex.ToArray()));
+            Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex));
         }
         
         private void UpdatePageTreeInIndex(IContent root)
         {
             var documentsToIndex = _pageDocumentsProvider.GetPageTreeDocuments(root, root.IsMasterLanguageBranch());
-            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
 
         private void DeletePageFromIndex(IContent content)
