@@ -124,7 +124,7 @@ namespace Forte.EpiServer.AzureSearch.Events
 
             var document = _contentDocumentBuilder.Build(content);
 
-            return [document];
+            return new[] {document};
         }
 
         private T GetPageLanguageBranchContentDocument(ContentReference contentLink, CultureInfo language)
