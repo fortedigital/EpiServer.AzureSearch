@@ -13,7 +13,7 @@ namespace Forte.EpiServer.AzureSearch.Extensions
         public static string GetDocumentUniqueId(this IContent content)
         {
             var language = string.Empty;
-            
+
             if (content is ILocalizable localizable)
             {
                 language = localizable.Language.Name;
@@ -32,8 +32,9 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             {
                 builder.Append($"_{language}");
             }
-            
+
             var contentProviderName = contentReference.ProviderName;
+
             if (string.IsNullOrEmpty(contentProviderName) == false)
             {
                 builder.Append($"_{contentProviderName}");
@@ -41,22 +42,25 @@ namespace Forte.EpiServer.AzureSearch.Extensions
 
             return builder.ToString();
         }
-        
+
         public static IEnumerable<PropertyData> GetIndexableProperties(this IContentData content, Func<PropertyData, bool> propertyPredicate = null)
         {
             var predicate = propertyPredicate ?? (_ => true);
             var propertyDataCollection = content.Property.Where(predicate);
 
             var contentType = content.GetType();
+
             foreach (var propertyData in propertyDataCollection)
             {
                 var property = contentType.GetProperty(propertyData.Name);
+
                 if (property == null)
                 {
-                    continue;                    
+                    continue;
                 }
-                
+
                 var indexableAttribute = property.GetCustomAttribute<IndexableAttribute>();
+
                 if (indexableAttribute != null && indexableAttribute.IsIndexable)
                 {
                     yield return propertyData;

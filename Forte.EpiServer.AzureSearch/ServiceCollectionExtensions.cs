@@ -14,7 +14,10 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddEpiServerAzureSearch<TDocument, TDocumentBuilder>(this IServiceCollection services, string serviceName, string apiKey)
+        public static IServiceCollection AddEpiServerAzureSearch<TDocument, TDocumentBuilder>(
+            this IServiceCollection services,
+            string serviceName,
+            string apiKey)
             where TDocument : ContentDocument
             where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
@@ -40,7 +43,8 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         private static void RegisterDocumentSpecificServices<TDocument, TDocumentBuilder>(IServiceCollection services)
-            where TDocument : ContentDocument where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
+            where TDocument : ContentDocument
+            where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
             services.AddSingleton<SearchEventHandler<TDocument>>();
             services.AddSingleton<EventsRegistry<TDocument>>();
@@ -52,7 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<IIndexGarbageCollector, IndexGarbageCollector<TDocument>>();
         }
 
-        public static void UseEpiServerAzureSearch<TDocument>(this IApplicationBuilder app) where TDocument : ContentDocument
+        public static void UseEpiServerAzureSearch<TDocument>(this IApplicationBuilder app)
+            where TDocument : ContentDocument
         {
             app.ApplicationServices.GetRequiredService<EventsRegistry<TDocument>>().RegisterEvents();
             app.ApplicationServices.GetRequiredService<BackgroundAzureSearchIndexBootstrapper>().CreateOrUpdateIndexAsync<TDocument>();

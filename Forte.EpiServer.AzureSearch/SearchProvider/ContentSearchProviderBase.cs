@@ -10,7 +10,8 @@ using Microsoft.Azure.Search.Models;
 
 namespace Forte.EpiServer.AzureSearch.SearchProvider
 {
-    public abstract class ContentSearchProviderBase<T> : ISearchProvider where T : ContentDocument
+    public abstract class ContentSearchProviderBase<T> : ISearchProvider
+        where T : ContentDocument
     {
         private readonly IAzureSearchService _azureSearchService;
         private readonly IContentLanguageAccessor _contentLanguageAccessor;
@@ -38,8 +39,8 @@ namespace Forte.EpiServer.AzureSearch.SearchProvider
                 previewText = result.Highlights.First().Value.First();
             }
 
-            var editModeUrl = PageEditing.GetEditUrlForLanguage(new ContentReference(result.Document.ContentComplexReference), result.Document.ContentLanguage); 
-            
+            var editModeUrl = PageEditing.GetEditUrlForLanguage(new ContentReference(result.Document.ContentComplexReference), result.Document.ContentLanguage);
+
             return new SearchResult(editModeUrl, result.Document.ContentName, previewText)
             {
                 Metadata =
@@ -58,14 +59,17 @@ namespace Forte.EpiServer.AzureSearch.SearchProvider
 
             if (query.FilterOnCulture)
             {
-                queryBuilder.Filter(AzureSearchQueryFilter.Equals(nameof(ContentDocument.ContentLanguage),
-                    currentCulture.Name));
+                queryBuilder.Filter(
+                    AzureSearchQueryFilter.Equals(
+                        nameof(ContentDocument.ContentLanguage),
+                        currentCulture.Name));
             }
-            
+
             return queryBuilder.Build();
         }
 
         public abstract string Area { get; }
+
         public abstract string Category { get; }
     }
 }

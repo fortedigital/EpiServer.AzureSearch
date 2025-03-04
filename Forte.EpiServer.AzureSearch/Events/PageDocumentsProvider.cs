@@ -12,7 +12,8 @@ using Forte.EpiServer.AzureSearch.Plugin.Filters;
 
 namespace Forte.EpiServer.AzureSearch.Events
 {
-    public class PageDocumentsProvider<T> where T : ContentDocument
+    public class PageDocumentsProvider<T>
+        where T : ContentDocument
     {
         public const string OldUrlKey = "OldUrl";
         private readonly IContentLoader _contentLoader;
@@ -20,8 +21,11 @@ namespace Forte.EpiServer.AzureSearch.Events
         private readonly IUrlResolver _urlResolver;
         private readonly IEnumerable<IContentIndexFilter> _contentIndexFilters;
 
-        public PageDocumentsProvider(IContentLoader contentLoader, IContentDocumentBuilder<T> contentDocumentBuilder,
-            IUrlResolver urlResolver, IEnumerable<IContentIndexFilter> contentIndexFilters)
+        public PageDocumentsProvider(
+            IContentLoader contentLoader,
+            IContentDocumentBuilder<T> contentDocumentBuilder,
+            IUrlResolver urlResolver,
+            IEnumerable<IContentIndexFilter> contentIndexFilters)
         {
             _contentLoader = contentLoader;
             _contentDocumentBuilder = contentDocumentBuilder;
@@ -76,7 +80,7 @@ namespace Forte.EpiServer.AzureSearch.Events
 
         private IReadOnlyCollection<T> GetPageTreeSpecificLanguageDocuments(IContent root)
         {
-            var language = ((ILocalizable) root).Language;
+            var language = ((ILocalizable)root).Language;
             var results = new List<T>();
 
             var document = GetPageLanguageBranchContentDocument(root.ContentLink, language);
@@ -124,7 +128,7 @@ namespace Forte.EpiServer.AzureSearch.Events
 
             var document = _contentDocumentBuilder.Build(content);
 
-            return new[] {document};
+            return new[] { document };
         }
 
         private T GetPageLanguageBranchContentDocument(ContentReference contentLink, CultureInfo language)

@@ -10,14 +10,18 @@ using Forte.EpiServer.AzureSearch.Plugin.Filters;
 
 namespace Forte.EpiServer.AzureSearch.Plugin
 {
-    public class ContentIndexer<T> : IContentIndexer where T : ContentDocument
+    public class ContentIndexer<T> : IContentIndexer
+        where T : ContentDocument
     {
         private readonly IContentLoader _contentLoader;
         private readonly IAzureSearchService _azureSearchService;
         private readonly IContentDocumentBuilder<T> _documentBuilder;
         private readonly IEnumerable<IContentIndexFilter> _contentIndexFilters;
 
-        public ContentIndexer(IContentLoader contentLoader, IAzureSearchService azureSearchService, IContentDocumentBuilder<T> documentBuilder,
+        public ContentIndexer(
+            IContentLoader contentLoader,
+            IAzureSearchService azureSearchService,
+            IContentDocumentBuilder<T> documentBuilder,
             IEnumerable<IContentIndexFilter> contentIndexFilters)
         {
             _contentLoader = contentLoader;

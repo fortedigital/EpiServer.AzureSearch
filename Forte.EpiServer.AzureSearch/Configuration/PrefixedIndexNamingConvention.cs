@@ -9,13 +9,16 @@ namespace Forte.EpiServer.AzureSearch.Configuration
             _prefix = prefix;
         }
 
-        public PrefixedIndexNamingConvention() : this("ForteAzureSearch")
+        public PrefixedIndexNamingConvention()
+            : this("ForteAzureSearch")
         {
         }
 
         public string GetIndexName(string indexName)
         {
-            return (string.IsNullOrEmpty(_prefix) ? indexName : $"{_prefix}{indexName}").ToLower();
+            return (string.IsNullOrEmpty(_prefix)
+                ? indexName
+                : $"{_prefix}{indexName}").ToLower();
         }
     }
 }

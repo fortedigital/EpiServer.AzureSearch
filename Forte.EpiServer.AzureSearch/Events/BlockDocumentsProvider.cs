@@ -10,14 +10,18 @@ using Forte.EpiServer.AzureSearch.Plugin.Filters;
 
 namespace Forte.EpiServer.AzureSearch.Events
 {
-    public class BlockDocumentsProvider<T> where T : ContentDocument
+    public class BlockDocumentsProvider<T>
+        where T : ContentDocument
     {
         private readonly IContentSoftLinkRepository _linkRepository;
         private readonly IContentRepository _contentRepository;
         private readonly IContentDocumentBuilder<T> _contentDocumentBuilder;
         private readonly IEnumerable<IContentIndexFilter> _contentIndexFilters;
 
-        public BlockDocumentsProvider(IContentSoftLinkRepository linkRepository, IContentRepository contentRepository, IContentDocumentBuilder<T> contentDocumentBuilder,
+        public BlockDocumentsProvider(
+            IContentSoftLinkRepository linkRepository,
+            IContentRepository contentRepository,
+            IContentDocumentBuilder<T> contentDocumentBuilder,
             IEnumerable<IContentIndexFilter> contentIndexFilters)
         {
             _linkRepository = linkRepository;
@@ -57,7 +61,10 @@ namespace Forte.EpiServer.AzureSearch.Events
 
             foreach (var softLink in softLinks)
             {
-                var parentContentLink = HasContentParent(softLink) ? softLink.OwnerContentLink.ToReferenceWithoutVersion() : null;
+                var parentContentLink = HasContentParent(softLink)
+                    ? softLink.OwnerContentLink.ToReferenceWithoutVersion()
+                    : null;
+
                 var content = _contentRepository.Get<IContent>(parentContentLink);
 
                 if (content is PageData)

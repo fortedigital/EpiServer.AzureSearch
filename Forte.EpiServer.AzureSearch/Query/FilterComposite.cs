@@ -20,10 +20,11 @@ namespace Forte.EpiServer.AzureSearch.Query
         public FilterComposite(IFilter filter)
         {
             Operator = Operator.And;
-            ChildFilters = new List<IFilter>{filter};
+            ChildFilters = new List<IFilter> { filter };
         }
-        
+
         public Operator Operator { get; }
+
         public IList<IFilter> ChildFilters { get; }
 
         public override string ToString()

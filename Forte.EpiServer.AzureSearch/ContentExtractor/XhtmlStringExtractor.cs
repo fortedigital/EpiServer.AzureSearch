@@ -50,11 +50,13 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                         var content = _contentLoader.Get<IContent>(contentFragment.ContentLink);
 
                         texts.Add(extractor.ExtractBlock(content));
+
                         break;
                     }
                     case StaticFragment staticFragment:
                         var html = staticFragment.InternalFormat;
                         staticFragments.Add(html);
+
                         break;
                 }
             }
@@ -64,14 +66,17 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 texts.Add(RemoveScripts(staticFragments));
             }
 
-            var joinedText = string.Join(ContentExtractorController.BlockExtractedTextFragmentsSeparator,
+            var joinedText = string.Join(
+                ContentExtractorController.BlockExtractedTextFragmentsSeparator,
                 texts.Select(t => t.Trim()));
+
             return StripHtml(joinedText);
         }
 
         private static string StripHtml(string html)
         {
             const string moreTextMarker = "...";
+
             return TextIndexer.StripHtml(html, int.MaxValue, int.MaxValue, moreTextMarker).Trim();
         }
 
@@ -86,6 +91,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             var document = parser.ParseDocument("<html><body></body></html>");
 
             var htmlFragment = parser.ParseFragment(htmlString, document.Body);
+
             foreach (var scriptElement in htmlFragment.QuerySelectorAll("script"))
             {
                 scriptElement.Remove();

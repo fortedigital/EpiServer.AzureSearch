@@ -5,14 +5,17 @@ using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch
 {
-    public class EventsRegistry<TDocument> where TDocument : ContentDocument
+    public class EventsRegistry<TDocument>
+        where TDocument : ContentDocument
     {
         private readonly IContentEvents _contentEvents;
         private readonly IContentSecurityEvents _contentSecurityEvents;
         private readonly SearchEventHandler<TDocument> _searchEventHandler;
 
-        public EventsRegistry(IContentEvents contentEvents,
-            IContentSecurityEvents contentSecurityEvents, SearchEventHandler<TDocument> searchEventHandler)
+        public EventsRegistry(
+            IContentEvents contentEvents,
+            IContentSecurityEvents contentSecurityEvents,
+            SearchEventHandler<TDocument> searchEventHandler)
         {
             _contentEvents = contentEvents;
             _contentSecurityEvents = contentSecurityEvents;

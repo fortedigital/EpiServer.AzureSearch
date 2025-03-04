@@ -81,7 +81,8 @@ namespace Forte.EpiServer.AzureSearch.Tests.Filters
 
         private static IEnumerable<TestCaseData> ShortcutTypesProvider()
         {
-            return Enum.GetValues<PageShortcutType>().Where(type => type is not PageShortcutType.Normal and not PageShortcutType.FetchData)
+            return Enum.GetValues<PageShortcutType>()
+                .Where(type => type is not PageShortcutType.Normal and not PageShortcutType.FetchData)
                 .Select(type => new TestCaseData(type));
         }
 

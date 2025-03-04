@@ -28,7 +28,8 @@ namespace Forte.EpiServer.AzureSearch
             _client = new SearchServiceClient(options.ServiceName, new SearchCredentials(options.ApiKey));
         }
 
-        public async Task<DocumentSearchResult<T>> SearchAsync<T>(AzureSearchQuery query, string indexName = null) where T : SearchDocument
+        public async Task<DocumentSearchResult<T>> SearchAsync<T>(AzureSearchQuery query, string indexName = null)
+            where T : SearchDocument
         {
             var searchParameters = BuildSearchParameters(query);
 
@@ -40,17 +41,20 @@ namespace Forte.EpiServer.AzureSearch
                 .ConfigureAwait(false);
         }
 
-        public DocumentSearchResult<T> Search<T>(AzureSearchQuery query, string indexName = null) where T : SearchDocument
+        public DocumentSearchResult<T> Search<T>(AzureSearchQuery query, string indexName = null)
+            where T : SearchDocument
         {
             return SearchAsync<T>(query, indexName).GetAwaiter().GetResult();
         }
 
-        public async Task<DocumentIndexResult> DeleteAsync<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
+        public async Task<DocumentIndexResult> DeleteAsync<T>(IEnumerable<T> documents, string indexName = null)
+            where T : SearchDocument
         {
             return await IndexBatchWithRetryAsync(IndexAction.Delete, documents, indexName);
         }
 
-        public void Delete<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
+        public void Delete<T>(IEnumerable<T> documents, string indexName = null)
+            where T : SearchDocument
         {
             DeleteAsync(documents, indexName).GetAwaiter().GetResult();
         }
@@ -72,12 +76,14 @@ namespace Forte.EpiServer.AzureSearch
             };
         }
 
-        public async Task<DocumentIndexResult> IndexAsync<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
+        public async Task<DocumentIndexResult> IndexAsync<T>(IEnumerable<T> documents, string indexName = null)
+            where T : SearchDocument
         {
             return await IndexBatchWithRetryAsync(IndexAction.Upload, documents, indexName);
         }
 
-        private async Task<DocumentIndexResult> IndexBatchWithRetryAsync<T>(Func<T, IndexAction<T>> indexActionFunc, IEnumerable<T> documents, string indexName) where T : SearchDocument
+        private async Task<DocumentIndexResult> IndexBatchWithRetryAsync<T>(Func<T, IndexAction<T>> indexActionFunc, IEnumerable<T> documents, string indexName)
+            where T : SearchDocument
         {
             const int retryCount = 2;
             var documentsArray = documents.ToArray();
@@ -87,29 +93,32 @@ namespace Forte.EpiServer.AzureSearch
 
             foreach (var indexBatch in indexBatches)
             {
-                var policy = Policy.Handle<IndexBatchException>().WaitAndRetryAsync(retryCount,
-                    retryAttempt => TimeSpan.FromSeconds(retryAttempt),
-                    async (exception, span) =>
-                    {
-                        var indexBatchException = (IndexBatchException)exception;
-                        var itemsToRetry = indexBatchException.FindFailedActionsToRetry(indexBatch, d => d.Id);
+                var policy = Policy.Handle<IndexBatchException>()
+                    .WaitAndRetryAsync(
+                        retryCount,
+                        retryAttempt => TimeSpan.FromSeconds(retryAttempt),
+                        async (exception, span) =>
+                        {
+                            var indexBatchException = (IndexBatchException)exception;
+                            var itemsToRetry = indexBatchException.FindFailedActionsToRetry(indexBatch, d => d.Id);
 
-                        var now = DateTimeOffset.UtcNow;
-                        Array.ForEach(documentsArray, d => d.IndexedAt = now);
+                            var now = DateTimeOffset.UtcNow;
+                            Array.ForEach(documentsArray, d => d.IndexedAt = now);
 
-                        await ExecuteIndexBatchAsync(itemsToRetry, indexName);
-                    });
+                            await ExecuteIndexBatchAsync(itemsToRetry, indexName);
+                        });
 
                 try
                 {
-                    var indexBatchResult = await policy.ExecuteAsync(async () =>
-                    {
-                        var now = DateTimeOffset.UtcNow;
+                    var indexBatchResult = await policy.ExecuteAsync(
+                        async () =>
+                        {
+                            var now = DateTimeOffset.UtcNow;
 
-                        Array.ForEach(documentsArray, d => d.IndexedAt = now);
+                            Array.ForEach(documentsArray, d => d.IndexedAt = now);
 
-                        return await ExecuteIndexBatchAsync(indexBatch, indexName);
-                    });
+                            return await ExecuteIndexBatchAsync(indexBatch, indexName);
+                        });
 
                     indexingResults.AddRange(indexBatchResult.Results);
                 }
@@ -122,12 +131,14 @@ namespace Forte.EpiServer.AzureSearch
             return new DocumentIndexResult(indexingResults);
         }
 
-        public DocumentIndexResult Index<T>(IEnumerable<T> documents, string indexName = null) where T : SearchDocument
+        public DocumentIndexResult Index<T>(IEnumerable<T> documents, string indexName = null)
+            where T : SearchDocument
         {
             return IndexAsync(documents, indexName).GetAwaiter().GetResult();
         }
 
-        public async Task<bool> IndexExistsAsync<T>() where T : SearchDocument
+        public async Task<bool> IndexExistsAsync<T>()
+            where T : SearchDocument
         {
             return await _client
                 .Indexes
@@ -135,22 +146,26 @@ namespace Forte.EpiServer.AzureSearch
                 .ConfigureAwait(false);
         }
 
-        public bool IndexExists<T>() where T : SearchDocument
+        public bool IndexExists<T>()
+            where T : SearchDocument
         {
             return IndexExistsAsync<T>().GetAwaiter().GetResult();
         }
 
-        public void CreateOrUpdateIndex<T>(IIndexSpecification indexSpecification = null) where T : SearchDocument
+        public void CreateOrUpdateIndex<T>(IIndexSpecification indexSpecification = null)
+            where T : SearchDocument
         {
             CreateOrUpdateIndexAsync<T>(indexSpecification).GetAwaiter().GetResult();
         }
 
-        public void DropIndex<T>() where T : SearchDocument
+        public void DropIndex<T>()
+            where T : SearchDocument
         {
             DropIndexAsync<T>().GetAwaiter().GetResult();
         }
 
-        public async Task DropIndexAsync<T>() where T : SearchDocument
+        public async Task DropIndexAsync<T>()
+            where T : SearchDocument
         {
             var indexName = GetDefaultIndexName<T>();
 
@@ -160,7 +175,8 @@ namespace Forte.EpiServer.AzureSearch
                 .ConfigureAwait(false);
         }
 
-        public async Task CreateOrUpdateIndexAsync<T>(IIndexSpecification indexSpecification = null) where T : SearchDocument
+        public async Task CreateOrUpdateIndexAsync<T>(IIndexSpecification indexSpecification = null)
+            where T : SearchDocument
         {
             var indexDefinition = new Index
             {
@@ -176,7 +192,8 @@ namespace Forte.EpiServer.AzureSearch
                 .ConfigureAwait(false);
         }
 
-        private async Task<DocumentIndexResult> ExecuteIndexBatchAsync<T>(IndexBatch<T> indexBatch, string indexName) where T : SearchDocument
+        private async Task<DocumentIndexResult> ExecuteIndexBatchAsync<T>(IndexBatch<T> indexBatch, string indexName)
+            where T : SearchDocument
         {
             return await _client
                 .Indexes
@@ -186,7 +203,8 @@ namespace Forte.EpiServer.AzureSearch
                 .ConfigureAwait(false);
         }
 
-        public string GetDefaultIndexName<T>() where T : SearchDocument
+        public string GetDefaultIndexName<T>()
+            where T : SearchDocument
         {
             return _indexNamingConvention.GetIndexName(typeof(T).Name);
         }

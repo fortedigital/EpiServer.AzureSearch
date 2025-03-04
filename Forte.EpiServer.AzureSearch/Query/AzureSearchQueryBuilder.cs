@@ -7,8 +7,9 @@ namespace Forte.EpiServer.AzureSearch.Query
     public class AzureSearchQueryBuilder
     {
         private readonly Operator _filterOperator;
-        
-        public AzureSearchQueryBuilder() : this(Operator.And)
+
+        public AzureSearchQueryBuilder()
+            : this(Operator.And)
         {
         }
 
@@ -24,14 +25,14 @@ namespace Forte.EpiServer.AzureSearch.Query
         public AzureSearchQueryBuilder SearchTerm(string term)
         {
             _query.SearchTerm = term;
-            
+
             return this;
         }
 
         public AzureSearchQueryBuilder Top(int count)
         {
             _query.Top = count;
-            
+
             return this;
         }
 
@@ -43,7 +44,7 @@ namespace Forte.EpiServer.AzureSearch.Query
             }
 
             HighlightField.Bold.Apply(_query);
-            
+
             return this;
         }
 
@@ -60,43 +61,43 @@ namespace Forte.EpiServer.AzureSearch.Query
         public AzureSearchQueryBuilder Filter(FilterComposite filterComposite)
         {
             _filters.Add(filterComposite);
-        
+
             return this;
         }
-        
+
         public AzureSearchQueryBuilder Filter(IFilter filter)
         {
-            this._filters.Add(new FilterComposite(_filterOperator, new List<IFilter> {filter}));
-        
+            this._filters.Add(new FilterComposite(_filterOperator, new List<IFilter> { filter }));
+
             return this;
         }
 
         public AzureSearchQueryBuilder FilterByContentTypeId(int contentTypeId)
         {
             var filter = AzureSearchQueryFilter.Equals(nameof(ContentDocument.ContentTypeId), contentTypeId);
-            
+
             return Filter(filter);
         }
-        
+
         public AzureSearchQueryBuilder WithScoringProfile(string scoringProfile)
         {
             _query.ScoringProfile = scoringProfile;
 
             return this;
         }
-        
+
         public AzureSearchQuery Build()
         {
             _query.Filter = string.Join($" {_filterOperator.ToString().ToLowerInvariant()} ", _filters.Select(d => d.ToQueryString()));
             _query.OrderBy = _orderByList;
-            
+
             return _query;
         }
 
         public AzureSearchQueryBuilder Skip(int count)
         {
             _query.Skip = count;
-            
+
             return this;
         }
 
@@ -113,17 +114,20 @@ namespace Forte.EpiServer.AzureSearch.Query
 
             return this;
         }
-        
+
         private sealed class HighlightField
         {
             public static HighlightField Bold => new HighlightField("<b>", "</b>");
+
             private readonly string _preTag;
             private readonly string _postTag;
+
             private HighlightField(string preTag, string postTag)
             {
                 _preTag = preTag;
                 _postTag = postTag;
             }
+
             public void Apply(AzureSearchQuery query)
             {
                 query.HighlightPreTag = _preTag;

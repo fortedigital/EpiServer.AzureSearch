@@ -8,6 +8,7 @@ namespace Forte.EpiServer.AzureSearch.Model
     {
         [Key]
         public string Id { get; set; }
+
         [IsFilterable]
         public DateTimeOffset IndexedAt { get; set; }
     }
