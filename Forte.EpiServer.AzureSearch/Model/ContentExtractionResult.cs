@@ -7,6 +7,7 @@ namespace Forte.EpiServer.AzureSearch.Model
     public class ContentExtractionResult
     {
         public IEnumerable<string> Values { get; }
+
         public IEnumerable<IContent> ContentReferences { get; }
 
         public ContentExtractionResult(IEnumerable<string> values, IEnumerable<IContent> contentReferences)

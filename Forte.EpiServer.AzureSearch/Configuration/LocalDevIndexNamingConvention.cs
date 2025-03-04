@@ -16,12 +16,13 @@ namespace Forte.EpiServer.AzureSearch.Configuration
         public string GetIndexName(string indexName)
         {
             var prefixedIndexName = _prefixedIndexNamingConvention.GetIndexName(indexName);
-            
+
             var environmentName = ConfigurationManager.AppSettings["episerver:EnvironmentName"];
 
             if (environmentName.Equals("LocalDev"))
             {
                 var machineNameNormalized = Regex.Replace(Environment.MachineName, @"[^\w]", "").ToLower();
+
                 return $"{prefixedIndexName}{machineNameNormalized}";
             }
 

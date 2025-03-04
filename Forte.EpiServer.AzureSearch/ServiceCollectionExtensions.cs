@@ -5,6 +5,7 @@ using Forte.EpiServer.AzureSearch.Events;
 using Forte.EpiServer.AzureSearch.Indexes;
 using Forte.EpiServer.AzureSearch.Model;
 using Forte.EpiServer.AzureSearch.Plugin;
+using Forte.EpiServer.AzureSearch.Plugin.Filters;
 using Microsoft.AspNetCore.Builder;
 
 // ReSharper disable CheckNamespace
@@ -13,7 +14,10 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddEpiServerAzureSearch<TDocument, TDocumentBuilder>(this IServiceCollection services, string serviceName, string apiKey)
+        public static IServiceCollection AddEpiServerAzureSearch<TDocument, TDocumentBuilder>(
+            this IServiceCollection services,
+            string serviceName,
+            string apiKey)
             where TDocument : ContentDocument
             where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
@@ -29,13 +33,18 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<DefaultDocumentBuilder>();
             services.AddTransient<IIndexSpecificationProvider, NullIndexSpecificationProvider>();
 
+            services.AddSingleton<IContentIndexFilter, PublishedFilter>();
+            services.AddSingleton<IContentIndexFilter, TemplateFilter>();
+            services.AddSingleton<IContentIndexFilter, ShortcutFilter>();
+
             RegisterDocumentSpecificServices<TDocument, TDocumentBuilder>(services);
 
             return services;
         }
 
         private static void RegisterDocumentSpecificServices<TDocument, TDocumentBuilder>(IServiceCollection services)
-            where TDocument : ContentDocument where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
+            where TDocument : ContentDocument
+            where TDocumentBuilder : class, IContentDocumentBuilder<TDocument>
         {
             services.AddSingleton<SearchEventHandler<TDocument>>();
             services.AddSingleton<EventsRegistry<TDocument>>();
@@ -47,7 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddTransient<IIndexGarbageCollector, IndexGarbageCollector<TDocument>>();
         }
 
-        public static void UseEpiServerAzureSearch<TDocument>(this IApplicationBuilder app) where TDocument : ContentDocument
+        public static void UseEpiServerAzureSearch<TDocument>(this IApplicationBuilder app)
+            where TDocument : ContentDocument
         {
             app.ApplicationServices.GetRequiredService<EventsRegistry<TDocument>>().RegisterEvents();
             app.ApplicationServices.GetRequiredService<BackgroundAzureSearchIndexBootstrapper>().CreateOrUpdateIndexAsync<TDocument>();

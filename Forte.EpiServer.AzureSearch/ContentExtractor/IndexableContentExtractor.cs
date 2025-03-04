@@ -16,6 +16,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             _contentLoader = contentLoader;
             _xhtmlStringExtractor = xhtmlStringExtractor;
         }
+
         public bool CanExtract(IContentData content)
         {
             return true;
@@ -30,6 +31,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             foreach (var property in properties)
             {
                 var textsFromProperty = ExtractTextFromProperty(extractor, property);
+
                 if (string.IsNullOrEmpty(textsFromProperty) == false)
                 {
                     texts.Add(textsFromProperty);
@@ -51,7 +53,7 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 {
                     var propertyContent = _contentLoader.Get<IContent>(contentReference);
 
-                    return propertyContent is BlockData 
+                    return propertyContent is BlockData
                         ? extractor.ExtractBlock(propertyContent)
                         : string.Empty;
                 }
@@ -61,7 +63,9 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                     {
                         return string.Empty;
                     }
+
                     var text = property.Value.ToString();
+
                     return string.IsNullOrEmpty(text) == false
                         ? text
                         : string.Empty;

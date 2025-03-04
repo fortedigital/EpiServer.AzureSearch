@@ -19,7 +19,10 @@ namespace Forte.EpiServer.AzureSearch.Plugin
         private readonly IIndexGarbageCollector _indexGarbageCollector;
         private readonly CancellationTokenSource _cancellationToken;
 
-        public ContentIndexingScheduledJob(IContentIndexer contentIndexer, IIndexDefinitionHandler indexDefinitionHandler, IIndexGarbageCollector indexGarbageCollector)
+        public ContentIndexingScheduledJob(
+            IContentIndexer contentIndexer,
+            IIndexDefinitionHandler indexDefinitionHandler,
+            IIndexGarbageCollector indexGarbageCollector)
         {
             _contentIndexer = contentIndexer;
             _indexDefinitionHandler = indexDefinitionHandler;
@@ -37,6 +40,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
 
             var (updateOrRecreateResult, recreationReason) = _indexDefinitionHandler.UpdateOrRecreateIndex().GetAwaiter().GetResult();
             var message = $"UpdateOrRecreateIndexResult: {updateOrRecreateResult}{NewLine}";
+
             if (updateOrRecreateResult == UpdateOrRecreateResult.Recreated)
             {
                 message += $"Recreation reason: {recreationReason}{NewLine}";
@@ -46,7 +50,7 @@ namespace Forte.EpiServer.AzureSearch.Plugin
             {
                 CancellationToken = _cancellationToken,
                 OnStatusChanged = OnStatusChanged,
-                IgnoreContent = new HashSet<ContentReference>{ContentReference.WasteBasket},
+                IgnoreContent = new HashSet<ContentReference> { ContentReference.WasteBasket },
                 VisitedContent = new HashSet<ContentReference>(),
                 Statistics = new IndexStatistics(),
             };

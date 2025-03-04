@@ -15,7 +15,8 @@ namespace Forte.EpiServer.AzureSearch.Indexes
             _indexSpecificationProvider = indexSpecificationProvider;
         }
 
-        public Task CreateOrUpdateIndexAsync<TDocument>() where TDocument : ContentDocument =>
+        public Task CreateOrUpdateIndexAsync<TDocument>()
+            where TDocument : ContentDocument =>
             _azureSearchService.CreateOrUpdateIndexAsync<TDocument>(_indexSpecificationProvider.GetIndexSpecification());
     }
 }

@@ -23,11 +23,11 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
             _ = principal ?? throw new ArgumentNullException(nameof(principal));
 
             var rolesAccessFilters = GetRoles(principal)
-                .Select(roleName => new AzureSearchQueryFilter(nameof(ContentDocument.AccessRoles),
-                    ComparisonExpression.Eq, roleName)
-                {
-                    GroupingExpression = GroupingExpression.Any
-                });
+                .Select(
+                    roleName => new AzureSearchQueryFilter(
+                        nameof(ContentDocument.AccessRoles),
+                        ComparisonExpression.Eq,
+                        roleName) { GroupingExpression = GroupingExpression.Any });
 
             return queryBuilder.Filter(new FilterComposite(Operator.Or, rolesAccessFilters));
         }
@@ -39,16 +39,20 @@ namespace Forte.EpiServer.AzureSearch.Query.Extensions
         /// <returns></returns>
         public static AzureSearchQueryBuilder FilterOnRoleAccessForCurrentPrincipal(this AzureSearchQueryBuilder queryBuilder)
         {
-            var currentPrincipal = ServiceLocator.Current.TryGetExistingInstance<IPrincipalAccessor>(out var instance) ? instance.Principal : PrincipalFallbackProvider.Current;
+            var currentPrincipal = ServiceLocator.Current.TryGetExistingInstance<IPrincipalAccessor>(out var instance)
+                ? instance.Principal
+                : PrincipalFallbackProvider.Current;
+
             return queryBuilder.FilterOnRoleAccess(currentPrincipal);
         }
 
         private static IEnumerable<string> GetRoles(IPrincipal principal)
         {
             return principal is ClaimsPrincipal claimsPrincipal
-                ? claimsPrincipal.Identities.SelectMany(i => i.Claims
-                    .Where(c => c.Type == i.RoleClaimType)
-                    .Select(c => c.Value))
+                ? claimsPrincipal.Identities.SelectMany(
+                    i => i.Claims
+                        .Where(c => c.Type == i.RoleClaimType)
+                        .Select(c => c.Value))
                 : Enumerable.Empty<string>();
         }
     }

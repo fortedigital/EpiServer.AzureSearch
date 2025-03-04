@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using EPiServer;
 using EPiServer.Cms.Shell;
@@ -10,7 +9,8 @@ using Forte.EpiServer.AzureSearch.Model;
 
 namespace Forte.EpiServer.AzureSearch.Events
 {
-    public class SearchEventHandler<T> where T : ContentDocument
+    public class SearchEventHandler<T>
+        where T : ContentDocument
     {
         private const string IsContentMovedFromWasteBasketKey = "IsContentMovedFromWasteBasket";
         private readonly IAzureSearchService _azureSearchService;
@@ -19,8 +19,11 @@ namespace Forte.EpiServer.AzureSearch.Events
         private readonly BlockDocumentsProvider<T> _blockDocumentsProvider;
         private readonly IUrlResolver _urlResolver;
 
-        public SearchEventHandler(IAzureSearchService azureSearchService, IContentLoader contentLoader,
-            PageDocumentsProvider<T> pageDocumentsProvider, BlockDocumentsProvider<T> blockDocumentsProvider,
+        public SearchEventHandler(
+            IAzureSearchService azureSearchService,
+            IContentLoader contentLoader,
+            PageDocumentsProvider<T> pageDocumentsProvider,
+            BlockDocumentsProvider<T> blockDocumentsProvider,
             IUrlResolver urlResolver)
         {
             _azureSearchService = azureSearchService;
@@ -37,6 +40,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             {
                 return;
             }
+
             var oldUrl = _urlResolver.GetUrl(new ContentReference(contentEventArgs.Content.ContentLink.ID));
 
             if (string.IsNullOrEmpty(oldUrl) == false)
@@ -44,7 +48,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                 contentEventArgs.Items.Add(PageDocumentsProvider<T>.OldUrlKey, oldUrl);
             }
         }
-        
+
         //Event handler for publishing page and block content
         public void OnPublishedContent(object sender, ContentEventArgs contentEventArgs)
         {
@@ -54,10 +58,12 @@ namespace Forte.EpiServer.AzureSearch.Events
             {
                 case PageData _:
                     UpdateIndexAfterPagePublish(content, contentEventArgs);
+
                     break;
 
                 case BlockData _:
                     UpdateBlockParentPagesInIndex(content);
+
                     break;
             }
         }
@@ -66,6 +72,7 @@ namespace Forte.EpiServer.AzureSearch.Events
         public void OnMovingContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
+
             if (content.IsDeleted)
             {
                 contentEventArgs.Items.Add(IsContentMovedFromWasteBasketKey, true);
@@ -76,6 +83,7 @@ namespace Forte.EpiServer.AzureSearch.Events
         public void OnMovedContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
+
             switch (content)
             {
                 case PageData _:
@@ -87,6 +95,7 @@ namespace Forte.EpiServer.AzureSearch.Events
                     {
                         UpdatePageTreeInIndex(content);
                     }
+
                     break;
                 case BlockData _:
                     if (contentEventArgs.TargetLink == ContentReference.WasteBasket)
@@ -95,48 +104,56 @@ namespace Forte.EpiServer.AzureSearch.Events
                     }
 
                     var isContentMovedFromWasteBasket = contentEventArgs.Items[IsContentMovedFromWasteBasketKey];
+
                     if (isContentMovedFromWasteBasket != null && (bool)isContentMovedFromWasteBasket)
                     {
                         UpdateBlockParentPagesInIndex(content);
                     }
+
                     break;
             }
         }
-        
+
         //Event handler for deleting index for expired pages and updating index of pages that use expired blocks 
         public void OnSavingContent(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
             var contentPreviousVersion = GetContentPreviousVersion(content.ContentLink);
+
             if (contentPreviousVersion != null && IsContentMarkedAsExpired(contentEventArgs, contentPreviousVersion))
             {
                 switch (content)
                 {
                     case PageData _:
                         DeletePageFromIndex(content);
+
                         break;
                     case BlockData _:
                         UpdateBlockParentPagesInIndex(content);
+
                         break;
                 }
             }
         }
-        
+
         //Event handler for deleting page index(for pages) and updating page parents(for blocks) during deleting of a specific language content version
         public void OnDeletingContentLanguage(object sender, ContentEventArgs contentEventArgs)
         {
             var content = contentEventArgs.Content;
+
             switch (content)
             {
                 case PageData _:
                     DeletePageFromIndex(content);
+
                     break;
                 case BlockData _:
                     UpdateBlockParentPagesInIndex(content);
+
                     break;
             }
         }
-        
+
         //Event handler for page access rights change
         public void OnContentSecuritySaved(object sender, ContentSecurityEventArg contentSecurityEventArgs)
         {
@@ -148,36 +165,36 @@ namespace Forte.EpiServer.AzureSearch.Events
                 UpdateIndexAfterPageAccessRightsChange(content);
             }
         }
-        
+
         private void UpdateIndexAfterPageAccessRightsChange(IContent content)
         {
             var documentsToIndex = _pageDocumentsProvider.GetPageTreeDocuments(content, true);
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
-        
+
         private void UpdateIndexAfterPagePublish(IContent content, ContentEventArgs contentEventArgs)
         {
             var documentsToIndex = _pageDocumentsProvider.GetDocuments(content, contentEventArgs);
             Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
-        
+
         private void UpdateBlockParentPagesInIndex(IContent content)
         {
             var documentsToIndex = _blockDocumentsProvider.GetDocuments(content);
-            
-            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
+
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
-        
+
         private void DeletePageTreeFromIndex(IContent root)
         {
             var documentsToRemoveFromIndex = _pageDocumentsProvider.GetPageTreeAllLanguagesDocuments(root, true);
-            Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex.ToArray()));
+            Task.Run(() => _azureSearchService.DeleteAsync(documentsToRemoveFromIndex));
         }
-        
+
         private void UpdatePageTreeInIndex(IContent root)
         {
             var documentsToIndex = _pageDocumentsProvider.GetPageTreeDocuments(root, root.IsMasterLanguageBranch());
-            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex.ToArray()));
+            Task.Run(() => _azureSearchService.IndexAsync(documentsToIndex));
         }
 
         private void DeletePageFromIndex(IContent content)
@@ -192,7 +209,7 @@ namespace Forte.EpiServer.AzureSearch.Events
             {
                 return false;
             }
-            
+
             return contentEventArgs.Content is IVersionable content &&
                    contentPreviousVersionInfo.StopPublish != content.StopPublish &&
                    content.StopPublish <= DateTime.Now;
@@ -204,9 +221,12 @@ namespace Forte.EpiServer.AzureSearch.Events
             {
                 return null;
             }
-            
+
             var previousVersionReference = reference.ToReferenceWithoutVersion();
-            return _contentLoader.TryGet<IContent>(previousVersionReference, out var content) ? content : null;
+
+            return _contentLoader.TryGet<IContent>(previousVersionReference, out var content)
+                ? content
+                : null;
         }
     }
 }

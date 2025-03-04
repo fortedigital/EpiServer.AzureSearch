@@ -12,24 +12,27 @@ namespace Forte.EpiServer.AzureSearch.Model
 {
     public class DefaultDocumentBuilder : DefaultDocumentBuilder<ContentDocument>
     {
-        public DefaultDocumentBuilder(IUrlResolver urlResolver, 
-            IContentLoader contentLoader, 
+        public DefaultDocumentBuilder(
+            IUrlResolver urlResolver,
+            IContentLoader contentLoader,
             IContentExtractorController extractor,
-            IContentTypeRepository contentTypeRepository) 
+            IContentTypeRepository contentTypeRepository)
             : base(urlResolver, contentLoader, extractor, contentTypeRepository)
         {
         }
     }
-    
-    public abstract class DefaultDocumentBuilder<T> : IContentDocumentBuilder<T> where T : ContentDocument, new()
+
+    public abstract class DefaultDocumentBuilder<T> : IContentDocumentBuilder<T>
+        where T : ContentDocument, new()
     {
         protected readonly IUrlResolver UrlResolver;
         protected readonly IContentLoader ContentLoader;
         protected readonly IContentExtractorController Extractor;
         protected readonly IContentTypeRepository ContentTypeRepository;
 
-        protected DefaultDocumentBuilder(IUrlResolver urlResolver, 
-            IContentLoader contentLoader, 
+        protected DefaultDocumentBuilder(
+            IUrlResolver urlResolver,
+            IContentLoader contentLoader,
             IContentExtractorController extractor,
             IContentTypeRepository contentTypeRepository)
         {
@@ -50,6 +53,7 @@ namespace Forte.EpiServer.AzureSearch.Model
             };
 
             var languageName = string.Empty;
+
             if (content is ILocalizable localizable)
             {
                 languageName = localizable.Language.Name;
@@ -57,7 +61,7 @@ namespace Forte.EpiServer.AzureSearch.Model
             }
 
             document.ContentUrl = EnsureRelativeUrl(UrlResolver.GetUrl(content.ContentLink, languageName));
-            
+
             if (content is ISearchableWithImage searchableWithImage && searchableWithImage.SearchResultsImage != null)
             {
                 document.ContentImageUrl = GetImageUrl(searchableWithImage.SearchResultsImage, languageName);
@@ -67,7 +71,11 @@ namespace Forte.EpiServer.AzureSearch.Model
             if (content is PageData pageData)
             {
                 document.ContentTypeName = pageData.PageTypeName;
-                document.StopPublishUtc = pageData.StopPublish.HasValue ? new DateTimeOffset(pageData.StopPublish.Value) : (DateTimeOffset?) null;
+
+                document.StopPublishUtc = pageData.StopPublish.HasValue
+                    ? new DateTimeOffset(pageData.StopPublish.Value)
+                    : (DateTimeOffset?)null;
+
                 document.CreatedAt = pageData.Created;
 
                 document.AccessRoles = GetReadAccessEntriesNames(pageData, SecurityEntityType.Role);
@@ -112,10 +120,12 @@ namespace Forte.EpiServer.AzureSearch.Model
             {
                 return string.Empty;
             }
-            
+
             var uri = new Uri(url, UriKind.RelativeOrAbsolute);
 
-            return uri.IsAbsoluteUri ? uri.AbsolutePath : url;
+            return uri.IsAbsoluteUri
+                ? uri.AbsolutePath
+                : url;
         }
     }
 }

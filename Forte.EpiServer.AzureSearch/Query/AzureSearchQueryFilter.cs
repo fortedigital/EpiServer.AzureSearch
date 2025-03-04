@@ -8,7 +8,7 @@ namespace Forte.EpiServer.AzureSearch.Query
             Comparison = comparison;
             Value = value;
         }
-        
+
         public AzureSearchQueryFilter(string propertyName, ComparisonExpression comparison, object value)
         {
             PropertyName = propertyName;
@@ -20,17 +20,17 @@ namespace Forte.EpiServer.AzureSearch.Query
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Eq, value);
         }
-        
+
         public static AzureSearchQueryFilter Equals(string propertyName, object value)
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Eq, value);
         }
-        
+
         public static AzureSearchQueryFilter NotEquals(string propertyName, object value)
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Ne, value);
         }
-        
+
         public static AzureSearchQueryFilter NotEquals(string propertyName, ISearchPropertyValue value)
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Ne, value);
@@ -40,7 +40,7 @@ namespace Forte.EpiServer.AzureSearch.Query
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Lt, value);
         }
-        
+
         public static AzureSearchQueryFilter LessThan(string propertyName, ISearchPropertyValue value)
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Lt, value);
@@ -50,15 +50,18 @@ namespace Forte.EpiServer.AzureSearch.Query
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Gt, value);
         }
-        
+
         public static AzureSearchQueryFilter GreaterThan(string propertyName, ISearchPropertyValue value)
         {
             return new AzureSearchQueryFilter(propertyName, ComparisonExpression.Gt, value);
         }
 
         public string PropertyName { get; }
+
         public ComparisonExpression Comparison { get; }
+
         public GroupingExpression? GroupingExpression { get; set; }
+
         public object Value { get; }
 
         private static string GetValuePart(object value)
@@ -87,11 +90,11 @@ namespace Forte.EpiServer.AzureSearch.Query
         {
             var valuePart = GetValuePart(Value);
             var comparisonPart = Comparison.ToString().ToLowerInvariant();
-            
+
             if (GroupingExpression.HasValue)
             {
                 var groupingExpressionPart = GroupingExpression.Value.ToString().ToLowerInvariant();
-                
+
                 return $"{PropertyName}/{groupingExpressionPart}(p: p {comparisonPart} {valuePart})";
             }
 

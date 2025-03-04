@@ -14,11 +14,11 @@ namespace Forte.EpiServer.AzureSearch.Extensions
             {
                 foreach (var cultureInfo in rootContent.ExistingLanguages)
                 {
-                    var loaderOptions = new LoaderOptions {LanguageLoaderOption.Specific(cultureInfo)};
+                    var loaderOptions = new LoaderOptions { LanguageLoaderOption.Specific(cultureInfo) };
                     var contentInSpecificLanguage = contentLoader.Get<IContent>(contentReference.ToReferenceWithoutVersion(), loaderOptions);
-                
+
                     yield return contentInSpecificLanguage;
-                }                
+                }
             }
             else
             {

@@ -18,13 +18,15 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
         public IEnumerable<string> ExtractPage(IContent content)
         {
             var results = ExtractPageInternal(content, new HashSet<ContentReference>(), this);
+
             return FlattenResults(results);
         }
-        
+
         public string ExtractBlock(IContentData content)
         {
             var results = ExtractBlockInternal(content, this);
             var texts = FlattenResults(results);
+
             return string.Join(BlockExtractedTextFragmentsSeparator, texts);
         }
 
@@ -36,8 +38,10 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
                 .Distinct();
         }
 
-        private IEnumerable<ContentExtractionResult> ExtractPageInternal(IContent content,
-            ISet<ContentReference> visitedContent, ContentExtractorController extractor)
+        private IEnumerable<ContentExtractionResult> ExtractPageInternal(
+            IContent content,
+            ISet<ContentReference> visitedContent,
+            ContentExtractorController extractor)
         {
             if (visitedContent.Contains(content.ContentLink))
             {
@@ -61,27 +65,30 @@ namespace Forte.EpiServer.AzureSearch.ContentExtractor
             {
                 results.AddRange(ExtractPageInternal(relatedContentReference, visitedContent, extractor));
             }
-            
+
             return results;
         }
 
         private IEnumerable<ContentExtractionResult> ExtractBlockInternal(IContentData content, IContentExtractorController extractor)
         {
             var result = new List<ContentExtractionResult>();
-            
+
             var extractionResults = GetExtractionResults(_extractors, content, extractor);
             result.AddRange(extractionResults);
 
             var relatedContentList = extractionResults.SelectMany(r => r.ContentReferences);
+
             foreach (var relatedContent in relatedContentList)
             {
                 result.AddRange(ExtractBlockInternal(relatedContent, extractor));
             }
-            
+
             return result;
         }
 
-        private static List<ContentExtractionResult> GetExtractionResults(IEnumerable<IContentExtractor> contentExtractors, IContentData content,
+        private static List<ContentExtractionResult> GetExtractionResults(
+            IEnumerable<IContentExtractor> contentExtractors,
+            IContentData content,
             IContentExtractorController extractor)
         {
             return contentExtractors

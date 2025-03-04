@@ -6,7 +6,8 @@ using Microsoft.Rest.Azure;
 
 namespace Forte.EpiServer.AzureSearch.Plugin
 {
-    public class IndexDefinitionHandler<T> : IIndexDefinitionHandler where T : ContentDocument
+    public class IndexDefinitionHandler<T> : IIndexDefinitionHandler
+        where T : ContentDocument
     {
         private readonly IAzureSearchService _azureSearchService;
         private readonly IIndexSpecificationProvider _indexSpecificationProvider;

@@ -5,6 +5,7 @@ namespace Forte.EpiServer.AzureSearch.Indexes
 {
     public interface IAzureSearchIndexBootstrapper
     {
-        Task CreateOrUpdateIndexAsync<TDocument>() where TDocument : ContentDocument;
+        Task CreateOrUpdateIndexAsync<TDocument>()
+            where TDocument : ContentDocument;
     }
 }
