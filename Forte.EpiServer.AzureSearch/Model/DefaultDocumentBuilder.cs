@@ -74,17 +74,20 @@ namespace Forte.EpiServer.AzureSearch.Model
 
                 document.StopPublishUtc = pageData.StopPublish.HasValue
                     ? new DateTimeOffset(pageData.StopPublish.Value)
-                    : (DateTimeOffset?)null;
-
-                document.CreatedAt = pageData.Created;
-
-                document.AccessRoles = GetReadAccessEntriesNames(pageData, SecurityEntityType.Role);
-                document.AccessUsers = GetReadAccessEntriesNames(pageData, SecurityEntityType.User);
+                    : null;
             }
             else
             {
                 document.ContentTypeName = ContentTypeRepository.Load(content.ContentTypeID).Name;
             }
+
+            if (content is IChangeTrackable changeTrackable)
+            {
+                document.CreatedAt = changeTrackable.Created;
+            }
+
+            document.AccessRoles = GetReadAccessEntriesNames(content, SecurityEntityType.Role);
+            document.AccessUsers = GetReadAccessEntriesNames(content, SecurityEntityType.User);
 
             document.ContentTypeId = content.ContentTypeID;
 
@@ -96,9 +99,9 @@ namespace Forte.EpiServer.AzureSearch.Model
             return document;
         }
 
-        private static string[] GetReadAccessEntriesNames(IContent pageData, SecurityEntityType securityEntityType)
+        private static string[] GetReadAccessEntriesNames(IContent content, SecurityEntityType securityEntityType)
         {
-            return pageData.ToRawACEArray()
+            return content.ToRawACEArray()
                 .Where(ace => ace.Access.HasFlag(AccessLevel.Read) && ace.EntityType == securityEntityType)
                 .Select(ace => ace.Name)
                 .ToArray();
