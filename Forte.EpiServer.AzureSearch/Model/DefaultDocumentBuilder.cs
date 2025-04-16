@@ -81,9 +81,9 @@ namespace Forte.EpiServer.AzureSearch.Model
                 document.ContentTypeName = ContentTypeRepository.Load(content.ContentTypeID).Name;
             }
 
-            if (content is IChangeTrackable changeTrackable)
+            if (content is IChangeTrackable changeTrackableContent)
             {
-                document.CreatedAt = changeTrackable.Created;
+                document.CreatedAt = changeTrackableContent.Created;
             }
 
             document.AccessRoles = GetReadAccessEntriesNames(content, SecurityEntityType.Role);
